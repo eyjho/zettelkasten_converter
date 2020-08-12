@@ -10,6 +10,7 @@ Extract fields (parent, UID = timestamp, title, contents, reference, keyword)
 Write to csv and save with same name
 
 Next steps
+Extract titles from zettel
 Subtitles are imported as index card titles
 
 Future features:
@@ -56,11 +57,13 @@ class Zettelkasten:
 
 		with open(self.file_path, 'r', encoding = 'utf-8') as my_file:
 		    contents = my_file.read()
-		    if self.diagnostics: print(contents[:1000])
+		    if self.diagnostics: print(contents)
 		    my_file.close()
 
 		if self.diagnostics:
 			for key, value in self.separate_fields(contents).items(): print(key, value)
+
+		return self.separate_fields(contents)
 
 	def separate_fields(self, text, library = {}):
 		'''Extract fields from text into dictionary using regex'''
@@ -96,7 +99,7 @@ class Zettelkasten:
 			elif 'index' in field_name: # create new dictionary entry at each instance of 'index'
 				key = self.timestamp()
 				if key in library.keys(): print('Error')
-				library[key] = dict(title = '')
+				library[key] = dict(parent = '', title = '')
 
 			# update field_name
 			field_name = self.clean_text(result.group())
@@ -119,7 +122,7 @@ class Zettelkasten:
 
 	def clean_text(self, text):
 		'''Scrub string of double spaces etc'''
-		# text.translate(str.maketrans('', '', ".,") # replace certain characters
+		text = text.translate(str.maketrans(';', ',')) # replace certain characters
 		return " ".join(text.split())
 
 	def timestamp(self):
@@ -131,12 +134,29 @@ class Zettelkasten:
 		if self.diagnostics: print(python_timestamp.seconds)
 		return '{:.8f}'.format(sheets_timestamp, 6)
 
-	def export_zk(self):
+	def extract_filepath(self, file_path):
+		'''re.split() file path to pick out filename'''
+		# filename = re.split('/+|\\\\+|[.]', file_path)[-2] # to extract filename
+		filename = re.split('[.]', file_path)[-2]
+		if self.diagnostics: print(filename)
+		return filename
+
+	def export_zk(self, filename, library):
 		'''Write dictionary from memory to csv'''
-		pass
+		csv_output = open(filename + '.csv','w', newline='')
+		csv_writer = csv.writer(csv_output , delimiter=';')
+
+		for key, dictionary in library.items():
+			csv_writer.writerow([key, dictionary['parent'], dictionary['title'], dictionary['zettel'], 
+				dictionary['reference'], dictionary['keyword']])
+		csv_output.close()
+		return True
 
 if __name__ == '__main__':
-	zettelkasten = Zettelkasten(diagnostics = False)
+	zettelkasten = Zettelkasten(diagnostics = True)
 	# zettelkasten.find_file()
 	zettelkasten.zettel_library = zettelkasten.import_zk()
 	# print(zettelkasten.timestamp())
+	filepath = zettelkasten.file_path
+	# zettelkasten.extract_filepath(filepath)
+	zettelkasten.export_zk(zettelkasten.extract_filepath(filepath), zettelkasten.zettel_library)
