@@ -67,7 +67,7 @@ class Zettelkasten:
 
 		with open(self.file_path, 'r', encoding = 'utf-8') as my_file:
 		    contents = my_file.read()
-		    if self.diagnostics: print(contents)
+		    if self.diagnostics: print("During import \n", contents)
 		    my_file.close()
 
 		self.master_key = self.timestamp()
@@ -75,7 +75,7 @@ class Zettelkasten:
 		# Extract subsections from text into dictionary
 		section_library = {}
 		section_library = self.separate_into_dictionary(contents, section_library, parent = self.master_key, field_type = 'section')
-		print(section_library)
+		if self.diagnostics: print("Sections extracted \n", section_library)
 		zettel_library = {} # Prevent RuntimeError: dictionary changed size during iteration
 		# Extract zettels from text into dictionary
 		for key, sub_section in section_library.items():
@@ -92,6 +92,7 @@ class Zettelkasten:
 
 		library.update(zettel_library)
 		if self.diagnostics:
+			print("Library full")
 			for key, value in library.items(): print(key, value)
 		return library
 
@@ -162,17 +163,17 @@ class Zettelkasten:
 		if self.diagnostics: print(key, field_name, field_contents)
 
 		if 'title' in field_name:
-			library[key]['title'] = field_contents.capitalize()
+			library[key]['title'] = self.clean_text(field_contents, True)
 
 		elif 'zettel' in field_name and ':' not in field_contents:
-			library[key]['zettel'] = field_contents.capitalize()
+			library[key]['zettel'] = self.clean_text(field_contents, True)
 		
 		# split contents into title and zettel if colon present and title empty
 		elif 'zettel' in field_name and ':' in field_contents and not library[key]['title']:
 			if self.diagnostics: print('Splitting title')
 			split_contents = re.split('[:]', field_contents)
-			library[key]['title'] = split_contents[0].capitalize()
-			library[key]['zettel'] = split_contents[1].capitalize()
+			library[key]['title'] = self.clean_text(split_contents[0], True)
+			library[key]['zettel'] = self.clean_text(split_contents[1], True)
 
 		elif 'reference' in field_name:
 			library[key]['reference'] = field_contents
@@ -190,8 +191,11 @@ class Zettelkasten:
 
 	def clean_text(self, text, capitals = False):
 		'''Scrub string of double spaces etc'''
-		text = text.translate(str.maketrans(';', ',')) # replace certain characters
-		return " ".join(text.split())
+		if len(text) > 0: # empty/short strings create index errors
+			text = text.translate(str.maketrans(';', ',')) # replace certain characters
+			text = text[0].upper() + text[1:]
+			return " ".join(text.split())
+		else: return text
 
 	def timestamp(self):
 		'''Generate timestamp in Googlesheets format UTC (counts days from 30/12/1899)'''

@@ -7,7 +7,7 @@ Docstring
 from zettelkasten_txt_to_csv import Zettelkasten
 
 if __name__ == '__main__':
-	zettelkasten = Zettelkasten(diagnostics = False)
+	zettelkasten = Zettelkasten(diagnostics = True)
 	# zettelkasten.find_file()
 	zettelkasten.library = zettelkasten.import_zk()
 	print(len(zettelkasten.library))
