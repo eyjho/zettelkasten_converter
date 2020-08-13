@@ -131,7 +131,7 @@ class Zettelkasten:
 
 			# extract and clean field contents
 			next_start_index = result.start()
-			field_contents =  self.clean_text(text[end_index: next_start_index])
+			field_contents =  self.clean_text(text[end_index: next_start_index], False)
 			start_index, end_index = result.span()
 			if self.diagnostics: print(result, '\n', start_index, field_name, field_contents)
 
@@ -142,10 +142,10 @@ class Zettelkasten:
 				key, library = self.store_fields(library, key, parent, field_name, field_contents)
 			
 			# update field_name
-			field_name = self.clean_text(result.group())
+			field_name = self.clean_text(result.group(), False)
 
 		# capture final entry
-		field_contents = self.clean_text(text[end_index:-1])
+		field_contents = self.clean_text(text[end_index:-1], False)
 		if self.diagnostics: print(field_contents)
 		if 'section' in field_type:
 			key, library = self.store_subsections(library, section_key, field_name, field_contents)
@@ -190,7 +190,7 @@ class Zettelkasten:
 
 		elif 'index' in field_name: # create new dictionary entry at each instance of 'index'
 			key = self.timestamp()
-			if key in library.keys(): print('Error')
+			if key in library.keys(): print('Error: Duplicate key when assigning index')
 			library[key] = dict(parent = parent, title = '', zettel = '', reference = '', keyword = '')
 			if self.diagnostics: print(library[key])
 
@@ -202,17 +202,17 @@ class Zettelkasten:
 
 		if len(text) > 1: # empty/short strings create index errors
 			text = text.translate(str.maketrans(';', ',')) # replace certain characters
-			return text[0].upper() + text[1:]
+			return text[0].upper() + text[1:] if capitals else text
 		else: return text
 
 	def timestamp(self):
 		'''Generate timestamp in Googlesheets format UTC (counts days from 30/12/1899)'''
 
-		time.sleep(2) # 0.01s necessary to allow timestamp to update to new value
+		time.sleep(0.01) # 0.01s necessary to allow timestamp to update to new value
 		python_timestamp = datetime.now(timezone.utc) - datetime(1899, 12, 30, tzinfo = timezone.utc)
 		sheets_timestamp = python_timestamp.days + python_timestamp.seconds/(3600*24) + python_timestamp.microseconds/(3600*24*1000000)
 		if self.diagnostics: print(python_timestamp.seconds)
-		return '{:.6f}'.format(sheets_timestamp)
+		return '{:.8f}'.format(sheets_timestamp)
 
 	def extract_filepath(self, file_path):
 		'''re.split() file path to pick out filepath without ending'''
@@ -221,7 +221,7 @@ class Zettelkasten:
 		if self.diagnostics: print(new_path)
 		return new_path
 
-	def export_zk(self, file_path, library):
+	def export_zk_csv(self, file_path, library):
 		'''Write dictionary from memory to csv'''
 		csv_output = open(file_path + '_' + str(self.master_key) + '.csv','w', newline='')
 		csv_writer = csv.writer(csv_output , delimiter=';')
@@ -231,3 +231,12 @@ class Zettelkasten:
 				dictionary['reference'], dictionary['keyword']])
 		csv_output.close()
 		return True
+
+	def export_zk_txt(self, file_path, library):
+		'''Write dictionary from memory to txt'''
+		txt_output = open(file_path + '_' + str(self.master_key) + '.txt','w', newline='')
+		for key, dictionary in library.items():
+			txt_output.write(f"[index] {key} [parent] {dictionary['parent']} [title] {dictionary['title']}\
+				\n[zettel] {dictionary['zettel']} \n[reference] {dictionary['reference']} \n[keyword] {dictionary['keyword']}\n\n")
+		txt_output.close()
+		pass

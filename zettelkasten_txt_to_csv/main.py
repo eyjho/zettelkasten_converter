@@ -7,8 +7,9 @@ Docstring
 from zettelkasten_txt_to_csv import Zettelkasten
 
 if __name__ == '__main__':
-	zettelkasten = Zettelkasten(diagnostics = False)
-	zettelkasten.library = zettelkasten.import_zk()
-	print(len(zettelkasten.library))
-	filepath = zettelkasten.file_path
-	zettelkasten.export_zk(zettelkasten.extract_filepath(filepath), zettelkasten.library)
+	zkn = Zettelkasten(diagnostics = False)
+	zkn.library = zkn.import_zk()
+	print(len(zkn.library))
+	filepath = zkn.file_path
+	# zkn.export_zk_csv(zkn.extract_filepath(filepath), zkn.library)
+	zkn.export_zk_txt(zkn.extract_filepath(filepath), zkn.library)
