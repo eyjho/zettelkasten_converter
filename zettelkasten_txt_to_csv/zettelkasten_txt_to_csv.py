@@ -11,11 +11,17 @@ Write to csv and save with same name
 
 Next steps
 Extract titles from zettel
+Capitalise titles and zettels
 Subtitles are imported as index card titles
 
 Future features:
+Automatically compile index cards
+Export back into text
+Duplicate key and field detection
+Handle images
 Read all files in directory
 Adapt for .html output from Evernote or markdown
+Read fields from list
 '''
 
 import re
@@ -32,7 +38,9 @@ class Zettelkasten:
 		'''Initialise library[key = UID] of dictionaries[keys = parent, title, contents, reference, keyword]'''
 		self.diagnostics = diagnostics # switch for diagnostics information
 		self.zettel_library = {}
-		self.file_path = 'C:/Users/Eugene/Documents/GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
+		if self.diagnostics: self.file_path = 'C:/Users/Eugene/Documents\
+/GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
+		else: self.file_path = self.find_file()
 
 	def __str__(self):
 		'''Show some stats (number of dictionaries)'''
@@ -49,8 +57,9 @@ class Zettelkasten:
 
 		self.file_path = filedialog.askopenfilename()
 		if self.diagnostics: print(self.file_path)
+		return self.file_path
 
-	def import_zk(self):
+	def import_zk(self, library = {}):
 		'''Read file and save into memory'''
 		# for .txt file
 		if self.file_path.lower().endswith('.txt'): pass
@@ -60,12 +69,140 @@ class Zettelkasten:
 		    if self.diagnostics: print(contents)
 		    my_file.close()
 
-		if self.diagnostics:
-			for key, value in self.separate_fields(contents).items(): print(key, value)
+		# Extract subsections from text into dictionary
+		# library = self.separate_into_dictionary(contents, field_type = 'section', library)
+		# for key, value in library.items(): print(key, value)
+		# return library
 
-		return self.separate_fields(contents)
+		# Extract zettels from text into dictionary
+		library = self.separate_into_dictionary(contents, library , parent = '', field_type = 'zettel')
+		for key, value in library.items(): print(key, value)
+		return library
 
-	def separate_fields(self, text, library = {}):
+	def separate_into_dictionary(self, text, library = {}, parent = '', field_type = ''):
+		'''Extract subsections from text into dictionary using regex'''
+
+		if 'section' in field_type:
+			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
+			master_key = self.timestamp()
+		elif 'zettel' in field_type: pattern = r'\[\w{1,10}\]'
+		else: print('Field type error'); return library
+		key, end_index, field_name, field_contents = 0, 0, '', ''
+		search_results = re.finditer(pattern, text)
+
+		# iterate through results and find each field marker
+		for result in search_results:
+			if self.diagnostics: print(result)
+			# exceptions for first result, just update field_name and indicies
+			if not end_index:
+				start_index, end_index = result.span()
+				field_name = result.group()
+				continue # skip first instance
+
+			# extract and clean field contents
+			next_start_index = result.start()
+			field_contents =  self.clean_text(text[end_index: next_start_index])
+			start_index, end_index = result.span()
+			if self.diagnostics: print(result, '\n', start_index, field_name, field_contents)
+
+			if 'section' in field_type:
+				key, library = self.store_subsections(library, master_key, field_name, field_contents)
+			elif 'zettel' in field_type:
+				key, library = self.store_fields(library, key, parent, field_name, field_contents)
+			
+			# # store in dictionary with section heading as title and section as zettel
+			# key = self.timestamp()
+			# if key in library.keys(): print('Error')
+			# library[key] = dict(parent = master_key, title = field_name, zettel = field_contents)
+
+			# update field_name
+			field_name = self.clean_text(result.group())
+
+		# capture final entry
+		field_contents = self.clean_text(text[end_index:-1])
+		if 'keyword' in field_name:
+			library[key]['keyword'] = field_contents
+
+		# clear empty entries
+		library = {k: v for k, v in library.items() if v['zettel']}
+		return library
+
+	def store_subsections(self, library = {}, master_key = 0, field_name = '', field_contents = ''):
+		'''Store in dictionary with section heading as title and section as zettel'''
+		key = self.timestamp()
+		if key in library.keys(): print('Error')
+		library[key] = dict(parent = master_key, title = field_name,
+			zettel = field_contents, reference = '', keyword = '')
+
+		return key, library
+
+	def store_fields(self, library = {}, key = 0, parent = 0, field_name = '', field_contents = ''):
+		'''Store previously extracted zettelkasten into dictionary'''
+
+		if self.diagnostics: print(key, field_name, field_contents)
+
+		if 'title' in field_name:
+			library[key]['title'] = field_contents
+
+		elif 'zettel' in field_name and ':' not in field_contents:
+			library[key]['zettel'] = field_contents
+		
+		# split contents into title and zettel if colon present and title empty
+		elif 'zettel' in field_name and ':' in field_contents and not library[key]['title']:
+			if self.diagnostics: print('Splitting title')
+			split_contents = re.split('[:]', field_contents)
+			library[key]['title'], library[key]['zettel'] = split_contents[0], split_contents[1]
+
+		elif 'reference' in field_name:
+			library[key]['reference'] = field_contents
+
+		elif 'keyword' in field_name:
+			library[key]['keyword'] = field_contents
+
+		elif 'index' in field_name: # create new dictionary entry at each instance of 'index'
+			key = self.timestamp()
+			if key in library.keys(): print('Error')
+			library[key] = dict(parent = '', title = '', zettel = '', reference = '', keyword = '')
+			if self.diagnostics: print(library[key])
+
+		return key, library
+
+	def separate_sections(self, text, library = {}):
+		'''Extract subsections from text into dictionary using regex'''
+		key, end_index, field_name, field_contents = 0, 0, '', ''
+		pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
+		search_results = re.finditer(pattern, text)
+		master_key = self.timestamp()
+
+		# iterate through results and find each field marker
+		for result in search_results:
+			print(result)
+			# exceptions for first result, just update field_name and indicies
+			if not end_index:
+				start_index, end_index = result.span()
+				field_name = result.group()
+				continue # skip first instance
+
+			# extract and clean field contents
+			next_start_index = result.start()
+			field_contents =  self.clean_text(text[end_index: next_start_index])
+			start_index, end_index = result.span()
+			if self.diagnostics: print(result, '\n', start_index, field_name, field_contents)
+
+			# store in dictionary with section heading as title and section as zettel
+			key = self.timestamp()
+			if key in library.keys(): print('Error')
+			library[key] = dict(parent = master_key, title = field_name,
+				zettel = field_contents, reference = '', keyword = '')
+
+			# update field_name
+			field_name = self.clean_text(result.group())
+
+		# if self.diagnostics: print(result, '\n', field_contents)
+		library = {k: v for k, v in library.items() if v['zettel']}
+		return library
+
+	def separate_fields(self, text, parent = 0, library = {}):
 		'''Extract fields from text into dictionary using regex'''
 		key, end_index = 0, 0
 		field_name, field_contents = '', ''
@@ -86,20 +223,7 @@ class Zettelkasten:
 			start_index, end_index = result.span()
 			if self.diagnostics: print(result, '\n', start_index, field_name, field_contents)
 
-			# store previously extracted contents into dictionary
-			if 'zettel' in field_name:
-				library[key]['zettel'] = field_contents
-
-			elif 'reference' in field_name:
-				library[key]['reference'] = field_contents
-
-			elif 'keyword' in field_name:
-				library[key]['keyword'] = field_contents
-
-			elif 'index' in field_name: # create new dictionary entry at each instance of 'index'
-				key = self.timestamp()
-				if key in library.keys(): print('Error')
-				library[key] = dict(parent = '', title = '')
+			key, library = self.store_fields(library, key, parent, field_name, field_contents)
 
 			# update field_name
 			field_name = self.clean_text(result.group())
@@ -120,7 +244,7 @@ class Zettelkasten:
 				print(k, dictionary.keys())
 		return library
 
-	def clean_text(self, text):
+	def clean_text(self, text, capitals = False):
 		'''Scrub string of double spaces etc'''
 		text = text.translate(str.maketrans(';', ',')) # replace certain characters
 		return " ".join(text.split())
@@ -151,12 +275,3 @@ class Zettelkasten:
 				dictionary['reference'], dictionary['keyword']])
 		csv_output.close()
 		return True
-
-if __name__ == '__main__':
-	zettelkasten = Zettelkasten(diagnostics = True)
-	# zettelkasten.find_file()
-	zettelkasten.zettel_library = zettelkasten.import_zk()
-	# print(zettelkasten.timestamp())
-	filepath = zettelkasten.file_path
-	# zettelkasten.extract_filepath(filepath)
-	zettelkasten.export_zk(zettelkasten.extract_filepath(filepath), zettelkasten.zettel_library)
