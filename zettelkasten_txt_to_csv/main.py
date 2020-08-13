@@ -10,6 +10,7 @@ if __name__ == '__main__':
 	zettelkasten = Zettelkasten(diagnostics = False)
 	# zettelkasten.find_file()
 	zettelkasten.library = zettelkasten.import_zk()
+	print(len(zettelkasten.library))
 	# print(zettelkasten.timestamp())
 	filepath = zettelkasten.file_path
 	# zettelkasten.extract_filepath(filepath)

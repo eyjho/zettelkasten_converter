@@ -7,12 +7,11 @@ Read in .txt file copied from Evernote, separate into fields, and write csv for 
 Data flow:
 Read and decode .txt file
 Extract fields (parent, UID = timestamp, title, contents, reference, keyword)
-Extract subtitles and titles from zettel
+Extract subtitles and titles from zettel, with capitalisation
 Write to csv and save with same name
 
 Next steps
 Order dictionary according to structure
-Capitalise titles and zettels
 
 Future features:
 Automatically compile index cards
@@ -42,6 +41,7 @@ class Zettelkasten:
 		if self.diagnostics: self.file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
 		else: self.file_path = self.find_file()
+		self.master_key = 0
 
 	def __str__(self):
 		'''Show some stats (number of dictionaries)'''
@@ -70,9 +70,12 @@ class Zettelkasten:
 		    if self.diagnostics: print(contents)
 		    my_file.close()
 
+		self.master_key = self.timestamp()
+
 		# Extract subsections from text into dictionary
 		section_library = {}
-		section_library = self.separate_into_dictionary(contents, section_library, field_type = 'section')
+		section_library = self.separate_into_dictionary(contents, section_library, parent = self.master_key, field_type = 'section')
+		print(section_library)
 		zettel_library = {} # Prevent RuntimeError: dictionary changed size during iteration
 		# Extract zettels from text into dictionary
 		for key, sub_section in section_library.items():
@@ -88,7 +91,8 @@ class Zettelkasten:
 		# 	print('Error: Duplicate keys')
 
 		library.update(zettel_library)
-		for key, value in library.items(): print(key, value)
+		if self.diagnostics:
+			for key, value in library.items(): print(key, value)
 		return library
 
 	def separate_into_dictionary(self, text, library = {}, parent = '', field_type = ''):
@@ -96,7 +100,7 @@ class Zettelkasten:
 
 		if 'section' in field_type:
 			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
-			master_key = self.timestamp()
+			section_key = self.timestamp()
 		elif 'zettel' in field_type: pattern = r'\[\w{1,10}\]'
 		else: print('Field type error'); return library
 		key, end_index, field_name, field_contents = 0, 0, '', ''
@@ -125,7 +129,7 @@ class Zettelkasten:
 
 			# store in dictionary according to section or zettel
 			if 'section' in field_type:
-				key, library = self.store_subsections(library, master_key, field_name, field_contents)
+				key, library = self.store_subsections(library, section_key, field_name, field_contents)
 			elif 'zettel' in field_type:
 				key, library = self.store_fields(library, key, parent, field_name, field_contents)
 			
@@ -134,18 +138,20 @@ class Zettelkasten:
 
 		# capture final entry
 		field_contents = self.clean_text(text[end_index:-1])
-		if 'keyword' in field_name:
-			library[key]['keyword'] = field_contents
-
+		if self.diagnostics: print(field_contents)
+		if 'section' in field_type:
+			key, library = self.store_subsections(library, section_key, field_name, field_contents)
+		elif 'zettel' in field_type:
+			key, library = self.store_fields(library, key, parent, field_name, field_contents)
 		# clear empty entries
 		library = {k: v for k, v in library.items() if v['zettel']}
 		return library
 
-	def store_subsections(self, library = {}, master_key = 0, field_name = '', field_contents = ''):
+	def store_subsections(self, library = {}, parent = 0, field_name = '', field_contents = ''):
 		'''Store in dictionary with section heading as title and section as zettel'''
 		key = self.timestamp()
 		if key in library.keys(): print('Error')
-		library[key] = dict(parent = master_key, title = field_name,
+		library[key] = dict(parent = parent, title = field_name,
 			zettel = field_contents, reference = '', keyword = '')
 
 		return key, library
@@ -156,16 +162,17 @@ class Zettelkasten:
 		if self.diagnostics: print(key, field_name, field_contents)
 
 		if 'title' in field_name:
-			library[key]['title'] = field_contents
+			library[key]['title'] = field_contents.capitalize()
 
 		elif 'zettel' in field_name and ':' not in field_contents:
-			library[key]['zettel'] = field_contents
+			library[key]['zettel'] = field_contents.capitalize()
 		
 		# split contents into title and zettel if colon present and title empty
 		elif 'zettel' in field_name and ':' in field_contents and not library[key]['title']:
 			if self.diagnostics: print('Splitting title')
 			split_contents = re.split('[:]', field_contents)
-			library[key]['title'], library[key]['zettel'] = split_contents[0], split_contents[1]
+			library[key]['title'] = split_contents[0].capitalize()
+			library[key]['zettel'] = split_contents[1].capitalize()
 
 		elif 'reference' in field_name:
 			library[key]['reference'] = field_contents
@@ -189,7 +196,7 @@ class Zettelkasten:
 	def timestamp(self):
 		'''Generate timestamp in Googlesheets format UTC (counts days from 30/12/1899)'''
 
-		time.sleep(0.01) # necessary to allow timestamp to update to new value
+		time.sleep(0.01) # 0.01s necessary to allow timestamp to update to new value
 		python_timestamp = datetime.now(timezone.utc) - datetime(1899, 12, 30, tzinfo = timezone.utc)
 		sheets_timestamp = python_timestamp.days + python_timestamp.seconds/(3600*24) + python_timestamp.microseconds/(3600*24*1000000)
 		if self.diagnostics: print(python_timestamp.seconds)
@@ -204,7 +211,7 @@ class Zettelkasten:
 
 	def export_zk(self, file_path, library):
 		'''Write dictionary from memory to csv'''
-		csv_output = open(file_path + '.csv','w', newline='')
+		csv_output = open(file_path + '_' + str(self.master_key) + '.csv','w', newline='')
 		csv_writer = csv.writer(csv_output , delimiter=';')
 
 		for key, dictionary in library.items():
