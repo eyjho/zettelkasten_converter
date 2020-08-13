@@ -76,25 +76,32 @@ class Zettelkasten:
 		section_library = {}
 		section_library = self.separate_into_dictionary(contents, section_library, parent = self.master_key, field_type = 'section')
 		if self.diagnostics: print("Sections extracted \n", section_library)
-		zettel_library = {} # Prevent RuntimeError: dictionary changed size during iteration
+		
 		# Extract zettels from text into dictionary
 		for key, sub_section in section_library.items():
+			zettel_library = {} # Prevent RuntimeError: dictionary changed size during iteration
 			zettel_library = self.separate_into_dictionary(sub_section['zettel'],
 				zettel_library , parent = key, field_type = 'zettel')
 			library.update({key: sub_section})
-			library[key]['zettel'] = 'Sub-section header'
+			library[key]['zettel'] = self.generate_index_text(zettel_library)
 			library.update(zettel_library)
 
-		# Check for duplicates and merge dictionaries
-		print('Duplicates: ', set(section_library.keys()).intersection(set(zettel_library.keys())))
+			# Check for duplicates and merge dictionaries
+			print('Duplicates: ', set(section_library.keys()).intersection(set(zettel_library.keys())))
 		# if set(library.keys()).intersection(set(zettel_library.keys()):
 		# 	print('Error: Duplicate keys')
-
-		library.update(zettel_library)
+		# library.update(zettel_library)
 		if self.diagnostics:
 			print("Library full")
 			for key, value in library.items(): print(key, value)
 		return library
+
+	def generate_index_text(self, zettel_library):
+		'''Create index card text involving keys and titles of each component card'''
+		index_contents = 'Section header. '
+		for key, value in zettel_library.items():
+			index_contents += f"{key}{', ' + value['title'] if value['title'] else ''}. "
+		return index_contents
 
 	def separate_into_dictionary(self, text, library = {}, parent = '', field_type = ''):
 		'''Extract subsections from text into dictionary using regex'''
@@ -151,7 +158,7 @@ class Zettelkasten:
 	def store_subsections(self, library = {}, parent = 0, field_name = '', field_contents = ''):
 		'''Store in dictionary with section heading as title and section as zettel'''
 		key = self.timestamp()
-		if key in library.keys(): print('Error')
+		if key in library.keys(): print('Error: Duplicate key while storing subsection')
 		library[key] = dict(parent = parent, title = field_name,
 			zettel = field_contents, reference = '', keyword = '')
 
@@ -201,11 +208,11 @@ class Zettelkasten:
 	def timestamp(self):
 		'''Generate timestamp in Googlesheets format UTC (counts days from 30/12/1899)'''
 
-		time.sleep(0.01) # 0.01s necessary to allow timestamp to update to new value
+		time.sleep(2) # 0.01s necessary to allow timestamp to update to new value
 		python_timestamp = datetime.now(timezone.utc) - datetime(1899, 12, 30, tzinfo = timezone.utc)
 		sheets_timestamp = python_timestamp.days + python_timestamp.seconds/(3600*24) + python_timestamp.microseconds/(3600*24*1000000)
 		if self.diagnostics: print(python_timestamp.seconds)
-		return '{:.8f}'.format(sheets_timestamp, 6)
+		return '{:.6f}'.format(sheets_timestamp)
 
 	def extract_filepath(self, file_path):
 		'''re.split() file path to pick out filepath without ending'''
