@@ -6,17 +6,17 @@ Read in .txt file copied from Evernote, separate into fields, and write csv for 
 
 Data flow:
 Read and decode .txt file
-Extract fields (parent, UID = timestamp, title, contents, reference, keyword)
 Extract subtitles and titles from zettel, with capitalisation
+Extract fields (parent, UID = timestamp, title, contents, reference, keyword)
+Check for duplicate keys
 Write to csv and save with same name
 
 Next steps
-Order dictionary according to structure
 
 Future features:
 Automatically compile index cards
+Check for duplicate zettels
 Export back into text
-Duplicate key and field detection
 Handle images
 Read all files in directory
 Adapt for .html output from Evernote or markdown
@@ -190,11 +190,12 @@ class Zettelkasten:
 		return key, library
 
 	def clean_text(self, text, capitals = False):
-		'''Scrub string of double spaces etc'''
-		if len(text) > 0: # empty/short strings create index errors
+		'''Scrub string of double spaces, colons, and capitalize'''
+		text = " ".join(text.split()) # remove double spaces
+
+		if len(text) > 1: # empty/short strings create index errors
 			text = text.translate(str.maketrans(';', ',')) # replace certain characters
-			text = text[0].upper() + text[1:]
-			return " ".join(text.split())
+			return text[0].upper() + text[1:]
 		else: return text
 
 	def timestamp(self):
