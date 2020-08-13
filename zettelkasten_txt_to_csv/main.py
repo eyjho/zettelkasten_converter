@@ -13,5 +13,5 @@ if __name__ == '__main__':
 	# print(zettelkasten.timestamp())
 	filepath = zettelkasten.file_path
 	# zettelkasten.extract_filepath(filepath)
-	# zettelkasten.export_zk(zettelkasten.extract_filepath(filepath), zettelkasten.zettel_library)
+	zettelkasten.export_zk(zettelkasten.extract_filepath(filepath), zettelkasten.library)
 

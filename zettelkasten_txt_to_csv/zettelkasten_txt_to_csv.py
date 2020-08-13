@@ -7,12 +7,12 @@ Read in .txt file copied from Evernote, separate into fields, and write csv for 
 Data flow:
 Read and decode .txt file
 Extract fields (parent, UID = timestamp, title, contents, reference, keyword)
+Extract subtitles and titles from zettel
 Write to csv and save with same name
 
 Next steps
-Extract titles from zettel
+Order dictionary according to structure
 Capitalise titles and zettels
-Subtitles are imported as index card titles
 
 Future features:
 Automatically compile index cards
@@ -22,6 +22,7 @@ Handle images
 Read all files in directory
 Adapt for .html output from Evernote or markdown
 Read fields from list
+Adapt for multi-depth list - currently forces everything into 2 layers
 '''
 
 import re
@@ -70,15 +71,19 @@ class Zettelkasten:
 		    my_file.close()
 
 		# Extract subsections from text into dictionary
-		library = self.separate_into_dictionary(contents, library, field_type = 'section')
+		section_library = {}
+		section_library = self.separate_into_dictionary(contents, section_library, field_type = 'section')
 		zettel_library = {} # Prevent RuntimeError: dictionary changed size during iteration
 		# Extract zettels from text into dictionary
-		for key, sub_section in library.items():
-			zettel_library.update(self.separate_into_dictionary(sub_section['zettel'],
-				zettel_library , parent = key, field_type = 'zettel'))
+		for key, sub_section in section_library.items():
+			zettel_library = self.separate_into_dictionary(sub_section['zettel'],
+				zettel_library , parent = key, field_type = 'zettel')
+			library.update({key: sub_section})
 			library[key]['zettel'] = 'Sub-section header'
+			library.update(zettel_library)
+
 		# Check for duplicates and merge dictionaries
-		print('Duplicates: ', set(library.keys()).intersection(set(zettel_library.keys())))
+		print('Duplicates: ', set(section_library.keys()).intersection(set(zettel_library.keys())))
 		# if set(library.keys()).intersection(set(zettel_library.keys()):
 		# 	print('Error: Duplicate keys')
 
@@ -100,10 +105,16 @@ class Zettelkasten:
 		# iterate through results and find each field marker
 		for result in search_results:
 			if self.diagnostics: print(result)
+			
+			# for sections, capture set of text before first subtitle
+			if not end_index and 'section' in field_type:
+				start_index, end_index = 0, 0
+				field_name = ''
+			
 			# exceptions for first result, just update field_name and indicies
-			if not end_index:
-				start_index, end_index = result.span()
+			elif not end_index and 'zettel' in field_type: 
 				field_name = result.group()
+				start_index, end_index = result.span()
 				continue # skip first instance
 
 			# extract and clean field contents
@@ -165,7 +176,7 @@ class Zettelkasten:
 		elif 'index' in field_name: # create new dictionary entry at each instance of 'index'
 			key = self.timestamp()
 			if key in library.keys(): print('Error')
-			library[key] = dict(parent = '', title = '', zettel = '', reference = '', keyword = '')
+			library[key] = dict(parent = parent, title = '', zettel = '', reference = '', keyword = '')
 			if self.diagnostics: print(library[key])
 
 		return key, library
@@ -185,15 +196,15 @@ class Zettelkasten:
 		return '{:.8f}'.format(sheets_timestamp, 6)
 
 	def extract_filepath(self, file_path):
-		'''re.split() file path to pick out filename'''
+		'''re.split() file path to pick out filepath without ending'''
 		# filename = re.split('/+|\\\\+|[.]', file_path)[-2] # to extract filename
-		filename = re.split('[.]', file_path)[-2]
-		if self.diagnostics: print(filename)
-		return filename
+		new_path = re.split('[.]', file_path)[-2]
+		if self.diagnostics: print(new_path)
+		return new_path
 
-	def export_zk(self, filename, library):
+	def export_zk(self, file_path, library):
 		'''Write dictionary from memory to csv'''
-		csv_output = open(filename + '.csv','w', newline='')
+		csv_output = open(file_path + '.csv','w', newline='')
 		csv_writer = csv.writer(csv_output , delimiter=';')
 
 		for key, dictionary in library.items():
