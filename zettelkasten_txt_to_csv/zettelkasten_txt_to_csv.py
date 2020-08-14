@@ -185,7 +185,7 @@ class Zettelkasten:
 		return library
 
 	def store_subsections(self, library = {}, parent = 0, field_name = '', field_contents = ''):
-		'''Store in dictionary with section heading as title and section as zettel'''
+		'''Store chunk of text in dictionary with section heading as title and section as zettel'''
 		key = self.timestamp()
 		if key in library.keys(): print('Error: Duplicate key while storing subsection')
 		library[key] = dict(parent = parent, title = field_name,
