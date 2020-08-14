@@ -84,10 +84,18 @@ class Zettelkasten:
 					print(row['Parent'], row['Zettel']); line_count +=1
 
 			for row in contents:
-				for field_name, field_contents in row:
-				# print(row.items())
-			    # self.store_fields(library, key = 0, parent = 0, field_name = '', field_contents = '')
+				print("Dict list join: ", )
+				text = ' '.join([f"[{field_name.lower()}] {contents}" for field_name, contents in row.items()])
+				library = self.separate_into_dictionary(text, library, parent = '', field_type = 'zettel')
+				# key = 0
+				# # iterate through dictionary and let self.store_fields identify ands store each field
+				# for field_name in row:
+				# 	# print(item, row[item])
+				# 	text = f"[{field_name.lower()}] {row[field_name]}"
+				# 	print('Imported row from csv', text)
+				# 	key, library = self.store_fields(library, key, field_name = field_name, field_contents = row[field_name])
 			my_file.close()
+		return library
 
 	def import_txt_zk(self, library = {}):
 		'''Read txt file and save into memory'''
@@ -231,8 +239,8 @@ class Zettelkasten:
 		elif 'index' in field_name: # create new dictionary entry at each instance of 'index'
 			key = self.timestamp() if len(field_contents) < 3 else field_contents
 			if key in library.keys(): print('Error: Duplicate key when assigning index')
-			library[key] = dict(parent = parent, title = '', zettel = '', reference = '', keyword = '')
 			if self.diagnostics: print(key, library[key])
+			else: library[key] = dict(parent = parent, title = '', zettel = '', reference = '', keyword = '')
 
 		else: print('Error: Field not identified')
 
