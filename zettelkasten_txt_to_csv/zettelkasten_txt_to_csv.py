@@ -73,19 +73,10 @@ class Zettelkasten:
 		with open(self.file_path, 'r', encoding = 'utf-8') as my_file:
 			contents = csv.DictReader(my_file, delimiter=',')
 
-			if self.diagnostics:
-				print("During import")
-				line_count = 0
-				for row in contents:
-					if not line_count:
-						print(row)
-						line_count +=1
-						continue
-					print(row['Parent'], row['Zettel']); line_count +=1
-
+			# row contains zettel dictionary
 			for row in contents:
-				print("Dict list join: ", )
 				text = ' '.join([f"[{field_name.lower()}] {contents}" for field_name, contents in row.items()])
+				if self.diagnostics: print("Imported dict: ", text)
 				library = self.separate_into_dictionary(text, library, parent = '', field_type = 'zettel')
 				# key = 0
 				# # iterate through dictionary and let self.store_fields identify ands store each field
@@ -156,7 +147,7 @@ class Zettelkasten:
 
 		# iterate through results and find each field marker
 		for result in search_results:
-			if self.diagnostics: print(result)
+			if self.diagnostics: print(f"Key: {key}, search result: {result}")
 			
 			# for sections, capture set of text before first subtitle
 			if not end_index and 'section' in field_type:
@@ -212,7 +203,7 @@ class Zettelkasten:
 		field_contents: string body of field
 		'''
 
-		if self.diagnostics: print(key, field_name, field_contents)
+		if self.diagnostics: print(f"Key: {key}, field_name: {field_name}, contents: {field_contents}")
 
 		if 'title' in field_name:
 			library[key]['title'] = self.clean_text(field_contents, True)
@@ -239,8 +230,8 @@ class Zettelkasten:
 		elif 'index' in field_name: # create new dictionary entry at each instance of 'index'
 			key = self.timestamp() if len(field_contents) < 3 else field_contents
 			if key in library.keys(): print('Error: Duplicate key when assigning index')
-			if self.diagnostics: print(key, library[key])
 			else: library[key] = dict(parent = parent, title = '', zettel = '', reference = '', keyword = '')
+			if self.diagnostics: print("Index assigned: ", key, library[key])
 
 		else: print('Error: Field not identified')
 
