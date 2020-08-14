@@ -133,8 +133,11 @@ class Zettelkasten:
 		return index_contents
 
 	def separate_into_dictionary(self, text, library = {}, parent = '', field_type = ''):
-		'''Extract subsections from text into dictionary using regex'''
-
+		'''Extract subsections from text into dictionary using regex
+		text: string including contents of multiple fields
+		library: to which fields will be added
+		parent: manually specifies parent of zettel. Overwritten if parent in field_type
+		field_type: index, parent, zettel, reference'''
 		if 'section' in field_type:
 			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
 			section_key = self.timestamp()
@@ -194,7 +197,12 @@ class Zettelkasten:
 		return key, library
 
 	def store_fields(self, library = {}, key = 0, parent = 0, field_name = '', field_contents = ''):
-		'''Store previously extracted zettelkasten into dictionary'''
+		'''Store previously extracted zettelkasten into dictionary
+		library: to which fields will be added
+		parent: manually specify parent field
+		field_name: string - index, parent, zettel, reference
+		field_contents: string body of field
+		'''
 
 		if self.diagnostics: print(key, field_name, field_contents)
 
