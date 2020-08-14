@@ -78,13 +78,6 @@ class Zettelkasten:
 				text = ' '.join([f"[{field_name.lower()}] {contents}" for field_name, contents in row.items()])
 				if self.diagnostics: print("Imported dict: ", text)
 				library = self.separate_into_dictionary(text, library, parent = '', field_type = 'zettel')
-				# key = 0
-				# # iterate through dictionary and let self.store_fields identify ands store each field
-				# for field_name in row:
-				# 	# print(item, row[item])
-				# 	text = f"[{field_name.lower()}] {row[field_name]}"
-				# 	print('Imported row from csv', text)
-				# 	key, library = self.store_fields(library, key, field_name = field_name, field_contents = row[field_name])
 			my_file.close()
 		return library
 
