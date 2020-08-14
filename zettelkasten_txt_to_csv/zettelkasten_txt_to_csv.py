@@ -119,9 +119,7 @@ class Zettelkasten:
 
 			# Check for duplicates and merge dictionaries
 			print('Duplicates: ', set(section_library.keys()).intersection(set(zettel_library.keys())))
-		# if set(library.keys()).intersection(set(zettel_library.keys()):
-		# 	print('Error: Duplicate keys')
-		# library.update(zettel_library)
+
 		if self.diagnostics:
 			print("Library full")
 			for key, value in library.items(): print(key, value)
