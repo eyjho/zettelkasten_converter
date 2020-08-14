@@ -198,6 +198,7 @@ class Zettelkasten:
 	def store_fields(self, library = {}, key = 0, parent = 0, field_name = '', field_contents = ''):
 		'''Store previously extracted zettelkasten into dictionary
 		library: to which fields will be added
+		key: index of zettel to which field belongs
 		parent: manually specify parent field
 		field_name: string - index, parent, zettel, reference
 		field_contents: string body of field
