@@ -229,7 +229,9 @@ class Zettelkasten:
 			key = self.timestamp()
 			if key in library.keys(): print('Error: Duplicate key when assigning index')
 			library[key] = dict(parent = parent, title = '', zettel = '', reference = '', keyword = '')
-			if self.diagnostics: print(library[key])
+			if self.diagnostics: print(key, library[key])
+
+		else: print('Error: Field not identified')
 
 		return key, library
 
