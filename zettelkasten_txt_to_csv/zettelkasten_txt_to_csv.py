@@ -39,7 +39,7 @@ class Zettelkasten:
 		self.diagnostics = diagnostics # switch for diagnostics information
 		self.library = {}
 		if self.diagnostics: self.file_path = 'C:/Users/Eugene/Documents\
-/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0.2 - main.csv'
+/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten.csv'
 
 # 		'C:/Users/Eugene/Documents\
 # /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
@@ -202,6 +202,7 @@ class Zettelkasten:
 		field_name: string - index, parent, zettel, reference
 		field_contents: string body of field
 		'''
+		field_name = field_name.lower()
 
 		if self.diagnostics: print(f"Key: {key}, field_name: {field_name}, contents: {field_contents}")
 
@@ -259,6 +260,7 @@ class Zettelkasten:
 		'''re.split() file path to pick out filepath without ending'''
 		# filename = re.split('/+|\\\\+|[.]', file_path)[-2] # to extract filename
 		new_path = re.split('[.]', file_path)[-2]
+		# vulnerable to any periods in filename
 		if self.diagnostics: print(new_path)
 		return new_path
 
