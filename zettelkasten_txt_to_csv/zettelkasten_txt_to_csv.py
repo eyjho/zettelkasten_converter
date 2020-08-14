@@ -225,8 +225,11 @@ class Zettelkasten:
 		elif 'keyword' in field_name:
 			library[key]['keyword'] = field_contents
 
+		elif 'parent' in field_name:
+			library[key]['parent'] = field_contents
+
 		elif 'index' in field_name: # create new dictionary entry at each instance of 'index'
-			key = self.timestamp()
+			key = self.timestamp() if len(field_contents) < 3 else field_contents
 			if key in library.keys(): print('Error: Duplicate key when assigning index')
 			library[key] = dict(parent = parent, title = '', zettel = '', reference = '', keyword = '')
 			if self.diagnostics: print(key, library[key])
