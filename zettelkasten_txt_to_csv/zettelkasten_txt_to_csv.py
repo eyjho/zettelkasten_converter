@@ -39,7 +39,10 @@ class Zettelkasten:
 		self.diagnostics = diagnostics # switch for diagnostics information
 		self.library = {}
 		if self.diagnostics: self.file_path = 'C:/Users/Eugene/Documents\
-/GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
+/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0.2 - main.csv'
+
+# 		'C:/Users/Eugene/Documents\
+# /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
 		else: self.file_path = self.find_file()
 		self.master_key = 0
 
@@ -60,10 +63,38 @@ class Zettelkasten:
 		if self.diagnostics: print(self.file_path)
 		return self.file_path
 
-	def import_zk(self, library = {}):
-		'''Read file and save into memory'''
-		# for .txt file
-		if self.file_path.lower().endswith('.txt'): pass
+	def import_csv_zk(self, library = {}):
+		'''Read csv file and save into memory'''
+		# check file type
+		if not self.file_path.lower().endswith('.csv'):
+			print('Filetype error')
+			return False
+
+		with open(self.file_path, 'r', encoding = 'utf-8') as my_file:
+			contents = csv.DictReader(my_file, delimiter=',')
+
+			if self.diagnostics:
+				print("During import")
+				line_count = 0
+				for row in contents:
+					if not line_count:
+						print(row)
+						line_count +=1
+						continue
+					print(row['Parent'], row['Zettel']); line_count +=1
+
+			for row in contents:
+				for field_name, field_contents in row:
+				# print(row.items())
+			    # self.store_fields(library, key = 0, parent = 0, field_name = '', field_contents = '')
+			my_file.close()
+
+	def import_txt_zk(self, library = {}):
+		'''Read txt file and save into memory'''
+		# check file type
+		if not self.file_path.lower().endswith('.txt'):
+			print('Filetype error')
+			return False
 
 		with open(self.file_path, 'r', encoding = 'utf-8') as my_file:
 		    contents = my_file.read()
