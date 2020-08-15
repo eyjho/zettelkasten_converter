@@ -8,15 +8,12 @@ Data flow:
 Read and decode .txt file
 Extract subtitles and titles from zettel, with capitalisation
 Extract fields (parent, UID = timestamp, title, contents, reference, keyword)
-Check for duplicate keys
-Write to csv and save with same name
+Check for duplicate keys, compiles index cards
+Write to csv or text and save with same name + timestamp
 
 Next steps
 
 Future features:
-Automatically compile index cards
-Check for duplicate zettels
-Export back into text
 Handle images
 Read all files in directory
 Adapt for .html output from Evernote or markdown
