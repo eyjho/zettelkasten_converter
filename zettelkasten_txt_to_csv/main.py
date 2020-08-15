@@ -21,5 +21,6 @@ if __name__ == '__main__':
 	# zkn.export_zk_txt(zkn.extract_filepath(filepath), zkn.library)
 	del zkn
 	zkn = Zettelkasten(diagnostics = False)
+	print(len(zkn.library))
 	zkn.library = zkn.import_txt_zk(file_path = file_path)
 	print(len(zkn.library))

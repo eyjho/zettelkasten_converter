@@ -90,8 +90,11 @@ class Zettelkasten:
 			my_file.close()
 		return library
 
-	def import_txt_zk(self, library = {}, file_path = None):
+	def import_txt_zk(self, library = None, file_path = None):
 		'''Read txt file and save into memory'''
+		# library = library_in
+		if library == None: library = dict()
+
 		# check file type
 		if file_path == None: file_path = self.file_path
 		if not file_path.lower().endswith('.txt'):
@@ -108,7 +111,7 @@ class Zettelkasten:
 		# Extract subsections from text into dictionary
 		section_library = {}
 		section_library = self.separate_into_dictionary(contents, section_library, parent = self.master_key, field_type = 'section')
-		if self.diagnostics: print("Sections extracted \n", section_library)
+		if self.diagnostics: print(len(section_library), " Sections extracted \n", section_library)
 		
 		# Extract zettels from text into dictionary
 		for key, sub_section in section_library.items():
