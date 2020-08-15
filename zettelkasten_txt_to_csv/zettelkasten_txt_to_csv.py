@@ -12,6 +12,7 @@ Check for duplicate keys, compiles index cards
 Write to csv or text and save with same name + timestamp
 
 Next steps
+Accelerate timestamping
 
 Future features:
 Handle images
