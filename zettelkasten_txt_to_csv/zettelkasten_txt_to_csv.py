@@ -71,9 +71,10 @@ class Zettelkasten:
 		if self.diagnostics: print(new_path)
 		return new_path
 
-	def import_csv_zk(self, library = {}, file_path = None):
+	def import_csv_zk(self, library = None, file_path = None):
 		'''Read csv file and save into memory'''
-		# check file type
+		# clen out library and check file type
+		if library == None: library = dict()
 		if file_path == None: file_path = self.file_path
 		if not file_path.lower().endswith('.csv'):
 			print('Error: Wrong filetype in importing .csv')
@@ -92,7 +93,7 @@ class Zettelkasten:
 
 	def import_txt_zk(self, library = None, file_path = None):
 		'''Read txt file and save into memory'''
-		# library = library_in
+		# Clean out library
 		if library == None: library = dict()
 
 		# check file type
@@ -122,12 +123,12 @@ class Zettelkasten:
 			library[key]['zettel'] = self.generate_index_text(zettel_library)
 			library.update(zettel_library)
 
-			# Check for duplicates and merge dictionaries
-			print('Duplicates: ', set(section_library.keys()).intersection(set(zettel_library.keys())))
-
 		if self.diagnostics:
 			print("Library full")
 			for key, value in library.items(): print(key, value)
+			# Check for duplicates and merge dictionaries
+			print('Duplicates: ', set(section_library.keys()).intersection(set(zettel_library.keys())))
+
 		return library
 
 	def generate_index_text(self, zettel_library):
