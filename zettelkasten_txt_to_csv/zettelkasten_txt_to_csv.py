@@ -264,14 +264,6 @@ class Zettelkasten:
 		if self.diagnostics: print(python_timestamp.seconds)
 		return '{:.8f}'.format(sheets_timestamp)
 
-	def extract_filepath(self, file_path):
-		'''re.split() file path to pick out filepath without ending'''
-		# filename = re.split('/+|\\\\+|[.]', file_path)[-2] # to extract filename
-		new_path = re.split('[.]', file_path)[-2]
-		# vulnerable to any periods in filename
-		if self.diagnostics: print(new_path)
-		return new_path
-
 	def export_zk_csv(self, file_path, library):
 		'''Write dictionary from memory to csv'''
 		csv_output = open(file_path + '_' + str(self.master_key) + '.csv','w', newline='')
