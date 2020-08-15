@@ -77,7 +77,7 @@ class Zettelkasten:
 		if file_path == None: file_path = self.file_path
 		if not file_path.lower().endswith('.csv'):
 			print('Error: Wrong filetype in importing .csv')
-			return False
+			return library
 
 		with open(file_path, 'r', encoding = 'utf-8') as my_file:
 			contents = csv.DictReader(my_file, delimiter=',')
