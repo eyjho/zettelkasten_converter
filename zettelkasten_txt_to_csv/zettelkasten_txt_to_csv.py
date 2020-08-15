@@ -36,7 +36,7 @@ class Zettelkasten:
 		self.diagnostics = diagnostics # switch for diagnostics information
 		self.library = {}
 		if self.diagnostics: self.file_path = 'C:/Users/Eugene/Documents\
-/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten.csv'
+/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
 
 # 		'C:/Users/Eugene/Documents\
 # /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
@@ -60,14 +60,23 @@ class Zettelkasten:
 		if self.diagnostics: print(self.file_path)
 		return self.file_path
 
-	def import_csv_zk(self, library = {}):
+	def extract_filepath(self, file_path):
+		'''re.split() file path to pick out filepath without ending'''
+		# filename = re.split('/+|\\\\+|[.]', file_path)[-2] # to extract filename
+		new_path = re.split('[.]', file_path)[-2]
+		# vulnerable to any periods in filename
+		if self.diagnostics: print(new_path)
+		return new_path
+
+	def import_csv_zk(self, library = {}, file_path = None):
 		'''Read csv file and save into memory'''
 		# check file type
-		if not self.file_path.lower().endswith('.csv'):
-			print('Filetype error')
+		if file_path == None: file_path = self.file_path
+		if not file_path.lower().endswith('.csv'):
+			print('Error: Wrong filetype in importing .csv')
 			return False
 
-		with open(self.file_path, 'r', encoding = 'utf-8') as my_file:
+		with open(file_path, 'r', encoding = 'utf-8') as my_file:
 			contents = csv.DictReader(my_file, delimiter=',')
 
 			# row contains zettel dictionary
@@ -78,14 +87,15 @@ class Zettelkasten:
 			my_file.close()
 		return library
 
-	def import_txt_zk(self, library = {}):
+	def import_txt_zk(self, library = {}, file_path = None):
 		'''Read txt file and save into memory'''
 		# check file type
-		if not self.file_path.lower().endswith('.txt'):
-			print('Filetype error')
-			return False
+		if file_path == None: file_path = self.file_path
+		if not file_path.lower().endswith('.txt'):
+			print('Error: Wrong filetype in importing .txt')
+			return library
 
-		with open(self.file_path, 'r', encoding = 'utf-8') as my_file:
+		with open(file_path, 'r', encoding = 'utf-8') as my_file:
 		    contents = my_file.read()
 		    if self.diagnostics: print("During import \n", contents)
 		    my_file.close()
