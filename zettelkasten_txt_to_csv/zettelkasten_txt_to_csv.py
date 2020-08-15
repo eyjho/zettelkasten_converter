@@ -35,13 +35,8 @@ class Zettelkasten:
 		'''Initialise library[key = UID] of dictionaries[keys = parent, title, contents, reference, keyword]'''
 		self.diagnostics = diagnostics # switch for diagnostics information
 		self.library = {}
-		if self.diagnostics: self.file_path = 'C:/Users/Eugene/Documents\
-/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
-
-# 		'C:/Users/Eugene/Documents\
-# /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
-		else: self.file_path = self.find_file()
 		self.master_key = 0
+		self.file_path = ''
 
 	def __str__(self):
 		'''Show some stats (number of dictionaries)'''
@@ -52,12 +47,20 @@ class Zettelkasten:
 		pass
 
 	def find_file(self):
-		'''Select and check file'''
-		root = tk.Tk()
-		root.withdraw()
+		'''Select file with dialog and check'''
+		if self.diagnostics:
+			self.file_path = 'C:/Users/Eugene/Documents\
+/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
 
-		self.file_path = filedialog.askopenfilename()
-		if self.diagnostics: print(self.file_path)
+# 		'C:/Users/Eugene/Documents\
+# /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
+			print(self.file_path)
+
+		else:
+			root = tk.Tk()
+			root.withdraw()		
+			self.file_path = filedialog.askopenfilename()
+
 		return self.file_path
 
 	def extract_filepath(self, file_path):
