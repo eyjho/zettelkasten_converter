@@ -8,6 +8,7 @@ https://www.internalpointers.com/post/run-painless-test-suites-python-unittest
 
 import unittest
 import tests
+from zettelkasten_txt_to_csv.zettelkasten_txt_to_csv import Zettelkasten
 
 def suite():
 	suite = unittest.TestSuite()
@@ -15,6 +16,8 @@ def suite():
 	return suite
 
 if __name__ == '__main__':
+	zkn = Zettelkasten(diagnostics = False)
 	loader = unittest.TestLoader()
-	runner = unittest.TextTestRunner(verbosity=3)
+	loader.sortTestMethodsUsing = None
+	runner = unittest.TextTestRunner(verbosity=1)
 	result = runner.run(suite())

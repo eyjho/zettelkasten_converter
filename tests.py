@@ -14,6 +14,8 @@ class TestZettelkasten(unittest.TestCase):
 
 	def setUp(self):
 		'''Run before every subsequent test'''
+		global zkn
+		zkn = Zettelkasten(diagnostics = False)
 		self.library_length = 73
 
 	def test_template(self):
@@ -24,14 +26,17 @@ class TestZettelkasten(unittest.TestCase):
 
 	def test_find_file(self):
 		'''Select "Zettelkasten v0_2.csv and return file_path'''
-		result = zkn.file_path
+		result = zkn.find_file()
 		correct_answer = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
 		self.assertEqual(result, correct_answer)
 
 	def test_extract_filepath(self):
 		'''Find filepath without ending'''
-		result = zkn.extract_filepath(zkn.file_path)
+		# print('file_path: ', zkn.file_path) # zkn.file_path empty in test but fine in operation
+		file_path = 'C:/Users/Eugene/Documents\
+/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
+		result = zkn.extract_filepath(file_path)
 		correct_answer = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2'
 		self.assertEqual(result, correct_answer)
@@ -63,5 +68,7 @@ class TestZettelkasten(unittest.TestCase):
 		pass
 
 if __name__ == '__main__':
-	zkn = Zettelkasten(diagnostics = False)
-	unittest.main()
+	# zkn = Zettelkasten(diagnostics = False)
+	loader = unittest.TestLoader()
+	loader.sortTestMethodsUsing = None
+	unittest.main(testLoader=loader)
