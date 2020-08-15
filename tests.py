@@ -76,7 +76,6 @@ class TestZkn_Txt(unittest.TestCase):
 		zkn = Zettelkasten(diagnostics = False)
 		file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
-		print('Library ', zkn.library)
 		zkn.library = zkn.import_txt_zk(file_path = file_path)
 		self.library_length = 73
 
