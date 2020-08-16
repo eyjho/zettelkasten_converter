@@ -39,9 +39,6 @@ class Zettelkasten:
 		self.master_key = 0
 		self.file_path = ''
 
-	def __str__(self):
-		'''Show some stats (number of dictionaries)'''
-		return len(self.library)
 
 	def display(self):
 		'''Show all zettels'''
@@ -113,7 +110,7 @@ class Zettelkasten:
 		'''Separate text into library'''
 		# Clean out library
 		if library == None: library = dict()
-		self.master_key = self.timestamp()
+		self.master_key = self.gsheets_timestamp)
 
 		# Extract subsections from text into dictionary
 		section_library = {}
@@ -155,7 +152,7 @@ class Zettelkasten:
 		field_type: index, parent, zettel, reference'''
 		if 'section' in field_type:
 			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
-			parent = self.timestamp()
+			parent = self.gsheets_timestamp)
 		elif 'zettel' in field_type: pattern = r'\[\w{1,10}\]'
 		else: print('Field type error'); return library
 
@@ -178,8 +175,7 @@ class Zettelkasten:
 			
 			# for sections, capture set of text before first subtitle
 			if not end_index and 'section' in field_type:
-				start_index, end_index = 0, 0
-				field_name = ''
+				start_index, end_index, field_name = 0, 0, ''
 			
 			# exceptions for first result, just update field_name and indicies
 			elif not end_index and 'zettel' in field_type: 
@@ -213,11 +209,12 @@ class Zettelkasten:
 			key, library = self.store_subsections(library, parent, field_name, field_contents)
 		elif 'zettel' in field_type:
 			key, library = self.store_fields(library, key, parent, field_name, field_contents)
+		
 		return key, library
 
 	def store_subsections(self, library = {}, parent = 0, field_name = '', field_contents = ''):
 		'''Store chunk of text in dictionary with section heading as title and section as zettel'''
-		key = self.timestamp()
+		key = self.gsheets_timestamp)
 		if key in library.keys(): print('Error: Duplicate key while storing subsection')
 		library[key] = dict(parent = parent, title = field_name,
 			zettel = field_contents, reference = '', keyword = '')
@@ -259,7 +256,7 @@ class Zettelkasten:
 			library[key]['parent'] = field_contents
 
 		elif 'index' in field_name: # create new dictionary entry at each instance of 'index'
-			key = self.timestamp() if len(field_contents) < 3 else field_contents
+			key = self.gsheets_timestamp) if len(field_contents) < 3 else field_contents
 			if key in library.keys(): print('Error: Duplicate key when assigning index')
 			else: library[key] = dict(parent = parent, title = '', zettel = '', reference = '', keyword = '')
 			if self.diagnostics: print("Index assigned: ", key, library[key])
@@ -277,7 +274,7 @@ class Zettelkasten:
 			return text[0].upper() + text[1:] if capitals else text
 		else: return text
 
-	def timestamp(self):
+	def gsheets_timestampself):
 		'''Generate timestamp in Googlesheets format UTC (counts days from 30/12/1899)'''
 
 		time.sleep(0.01) # 0.01s necessary to allow timestamp to update to new value
