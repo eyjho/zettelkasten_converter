@@ -13,14 +13,7 @@ possible because in Python functions are first class objects.
 """
 
 from __future__ import annotations
-from typing import List
-import re
-import os
-import csv
-import time
-import tkinter as tk
-from tkinter import filedialog
-from datetime import datetime, timezone
+from typing import List, Dict
 from zettelkasten_txt_to_csv import Zettelkasten
 
 class Context():
@@ -63,8 +56,8 @@ class Context():
 		# ...
 
 		print("Context: Sorting data using the strategy (not sure how it'll do it)")
-		result = self._strategy.do_algorithm(["a", "b", "c", "d", "e"])
-		print(",".join(result))
+		result = self._strategy.do_algorithm({})
+		print(len(result))
 
 		# ...
 
@@ -89,13 +82,15 @@ interface. The interface makes them interchangeable in the Context.
 
 
 class import_csv(Strategy):
-	def do_algorithm(self, data: List) -> List:
-		return sorted(data)
+	def do_algorithm(self, data: Dict) -> Dict:
+		file_path = 'C:/Users/Eugene/Documents/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
+		return self.import_csv_zk(file_path = file_path)
 
 
 class import_txt(Strategy):
 	def do_algorithm(self, data: List) -> List:
-		return reversed(sorted(data))
+		file_path = 'C:/Users/Eugene/Documents/GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
+		return self.import_txt_zk(file_path = file_path)
 
 
 if __name__ == "__main__":
@@ -104,10 +99,10 @@ if __name__ == "__main__":
 	# to make the right choice.
 
 	context = Context(import_csv())
-	print("Client: Strategy is set to normal sorting.")
+	print("Client: Strategy is set to import csv.")
 	context.do_some_business_logic()
 	print()
 
-	print("Client: Strategy is set to reverse sorting.")
+	print("Client: Strategy is set to import txt.")
 	context.strategy = import_txt()
 	context.do_some_business_logic()

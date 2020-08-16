@@ -74,7 +74,7 @@ class Zettelkasten:
 
 	def import_csv_zk(self, library = None, file_path = None):
 		'''Read csv file and save into memory'''
-		# clen out library and check file type
+		# clean out library and check file type
 		if library == None: library = dict()
 		if file_path == None: file_path = self.file_path
 		if not file_path.lower().endswith('.csv'):
