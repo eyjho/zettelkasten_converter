@@ -64,13 +64,13 @@ class Zettelkasten:
 
 		return self.file_path
 
-	def extract_filepath(self, file_path):
-		'''re.split() file path to pick out filepath without ending'''
+	def split_path(self, path):
+		'''os.path.splitext file path to separate path root and .extension'''
 		# filename = re.split('/+|\\\\+|[.]', file_path)[-2] # to extract filename
-		new_path = re.split('[.]', file_path)[-2]
+		path_root, extension = os.path.splitext(path)
 		# vulnerable to any periods in filename
 		if self.diagnostics: print(new_path)
-		return new_path
+		return path_root, extension
 
 	def import_csv_zk(self, library = None, file_path = None):
 		'''Read csv file and save into memory'''

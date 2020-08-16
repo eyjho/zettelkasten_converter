@@ -31,12 +31,12 @@ class TestZettelkasten(unittest.TestCase):
 /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
 		self.assertEqual(result, correct_answer)
 
-	def test_extract_filepath(self):
+	def test_split_path(self):
 		'''Find filepath without ending'''
 		# print('file_path: ', zkn.file_path) # zkn.file_path empty in test but fine in operation
 		file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
-		result = zkn.extract_filepath(file_path)
+		result, extension = zkn.split_path(file_path)
 		correct_answer = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2'
 		self.assertEqual(result, correct_answer)
