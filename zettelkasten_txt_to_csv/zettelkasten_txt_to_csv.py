@@ -106,6 +106,10 @@ class Zettelkasten:
 
 		return contents
 
+	def split_str_text_to_lib(self, library = None, contents = ''):
+		'''Separate text into library'''
+		# Clean out library
+		if library == None: library = dict()
 		self.master_key = self.timestamp()
 
 		# Extract subsections from text into dictionary
@@ -113,7 +117,16 @@ class Zettelkasten:
 		section_library = self.split_txt_to_dict(contents, section_library, parent = self.master_key, field_type = 'section')
 		if self.diagnostics: print(len(section_library), " Sections extracted \n", section_library)
 		
-		# Extract zettels from text into dictionary
+		library = self.split_section_lib_to_zettel_lib(section_library, library)
+
+		if self.diagnostics:
+			print("Library full")
+			for key, value in library.items(): print(key, value)
+
+		return library
+
+	def split_section_lib_to_zettel_lib(self, section_library, library):
+		'''Extract zettels from section dictionary into dictionary'''
 		for key, sub_section in section_library.items():
 			zettel_library = {} # Prevent RuntimeError: dictionary changed size during iteration
 			zettel_library = self.split_txt_to_dict(sub_section['zettel'],
@@ -121,13 +134,6 @@ class Zettelkasten:
 			library.update({key: sub_section})
 			library[key]['zettel'] = self.generate_index_text(zettel_library)
 			library.update(zettel_library)
-
-		if self.diagnostics:
-			print("Library full")
-			for key, value in library.items(): print(key, value)
-			# Check for duplicates and merge dictionaries
-			print('Duplicates: ', set(section_library.keys()).intersection(set(zettel_library.keys())))
-
 		return library
 
 	def generate_index_text(self, zettel_library):
@@ -303,15 +309,17 @@ if __name__ == '__main__':
 	# file_path = zkn.tkgui_getfile()
 	file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
-	zkn.library = zkn.import_txt_zk(file_path = file_path)
-	print(len(zkn.library))
-	# filepath = zkn.file_path
-	# print(filepath)
-	# print(zkn.extract_filepath(file_path))
+	contents = ''
+	contents = zkn.import_txt_to_str(file_path = file_path)
+	zkn.library = zkn.split_str_text_to_lib(contents = contents)
+	print(type(zkn.library))
+	path_root, extension = zkn.split_path(file_path)
+	print(path_root)
+	# print(zkn.extract_filepath(path_root))
 	# zkn.export_zk_csv(zkn.extract_filepath(filepath), zkn.library)
 	# zkn.export_zk_txt(zkn.extract_filepath(filepath), zkn.library)
-	del zkn
-	zkn = Zettelkasten(diagnostics = False)
-	print(len(zkn.library))
-	zkn.library = zkn.import_txt_zk(file_path = file_path)
-	print(len(zkn.library))
+	# del zkn
+	# zkn = Zettelkasten(diagnostics = False)
+	# print(len(zkn.library))
+	# zkn.library = zkn.import_txt_zk(file_path = file_path)
+	# print(len(zkn.library))
