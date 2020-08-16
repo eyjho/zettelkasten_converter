@@ -60,7 +60,8 @@ class Zettelkasten:
 		else:
 			root = tk.Tk()
 			root.withdraw()		
-			self.file_path = filedialog.askopenfilename(initialdir = "..\data",title = message)
+			self.file_path = filedialog.askopenfilename(
+				initialdir = "..\\data",title = message)
 
 		return self.file_path
 
@@ -85,9 +86,11 @@ class Zettelkasten:
 			contents = csv.DictReader(my_file, delimiter=',')
 			# row contains zettel dictionary
 			for row in contents:
-				text = ' '.join([f"[{field_name.lower()}] {contents}" for field_name, contents in row.items()])
+				text = ' '.join([f"[{field_name.lower()}] {contents}" \
+					for field_name, contents in row.items()])
 				if self.diagnostics: print("Imported dict: ", text)
-				library = self.split_txt_to_dict(text, library, parent = '', field_type = 'zettel')
+				library = self.split_txt_to_dict(text, library,
+					parent = '', field_type = 'zettel')
 			my_file.close()
 		return library
 
