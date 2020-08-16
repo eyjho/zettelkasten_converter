@@ -24,9 +24,9 @@ class TestZettelkasten(unittest.TestCase):
 		correct_answer = ''
 		self.assertEqual(result, correct_answer)
 
-	def test_find_file(self):
+	def test_tkgui_getfile(self):
 		'''Select "Zettelkasten v0_2.csv and return file_path'''
-		result = zkn.find_file()
+		result = zkn.tkgui_getfile('Select Zettelkasten v0_2.csv')
 		correct_answer = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
 		self.assertEqual(result, correct_answer)

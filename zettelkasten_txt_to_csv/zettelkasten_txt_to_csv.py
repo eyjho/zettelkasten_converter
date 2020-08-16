@@ -41,13 +41,13 @@ class Zettelkasten:
 
 	def __str__(self):
 		'''Show some stats (number of dictionaries)'''
-		pass
+		return len(self.library)
 
 	def display(self):
 		'''Show all zettels'''
 		pass
 
-	def find_file(self):
+	def tkgui_getfile(self, message = "Select file"):
 		'''Select file with dialog and check'''
 		if self.diagnostics:
 			self.file_path = 'C:/Users/Eugene/Documents\
@@ -60,7 +60,7 @@ class Zettelkasten:
 		else:
 			root = tk.Tk()
 			root.withdraw()		
-			self.file_path = filedialog.askopenfilename()
+			self.file_path = filedialog.askopenfilename(initialdir = "..\data",title = message)
 
 		return self.file_path
 
@@ -83,7 +83,6 @@ class Zettelkasten:
 
 		with open(file_path, 'r', encoding = 'utf-8') as my_file:
 			contents = csv.DictReader(my_file, delimiter=',')
-
 			# row contains zettel dictionary
 			for row in contents:
 				text = ' '.join([f"[{field_name.lower()}] {contents}" for field_name, contents in row.items()])
