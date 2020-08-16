@@ -57,17 +57,15 @@ class Zettelkasten:
 		self.diagnostics = diagnostics # switch for diagnostics information
 		self.library = {}
 		self.master_key = 0
-		self.file_path = ''
 
 	def display(self, quantity):
 		'''Show some number of zettels'''
 		for key, value in self.library.items(): print(key, value['zettel'])
 
-	def import_csv_zk(self, library = None, file_path = None):
+	def import_csv_zk(self, library = None, file_path = ''):
 		'''Read csv file and save into memory'''
 		# clean out library and check file type
 		if library == None: library = dict()
-		if file_path == None: file_path = self.file_path
 		if not file_path.lower().endswith('.csv'):
 			print('Error: Wrong filetype in importing .csv')
 			return library
@@ -84,10 +82,9 @@ class Zettelkasten:
 			my_file.close()
 		return library
 
-	def import_txt_to_str(self, file_path = None):
+	def import_txt_to_str(self, file_path = ''):
 		'''Read txt file and return library'''
 		# check file type
-		if file_path == None: file_path = self.file_path
 		if not file_path.lower().endswith('.txt'):
 			print('Error: Wrong filetype in importing .txt')
 			return library
