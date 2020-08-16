@@ -85,7 +85,7 @@ class TestZkn_TXT(unittest.TestCase):
 		file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
 		contents = zkn.import_txt_to_str(file_path = file_path)
-		zkn.library = zkn.split_str_text_to_library(contents = contents)
+		zkn.library = zkn.split_str_text_to_lib(contents = contents)
 		self.library_length = 73
 
 	def test_import_txt_length(self):

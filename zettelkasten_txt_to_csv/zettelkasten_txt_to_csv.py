@@ -110,13 +110,13 @@ class Zettelkasten:
 
 		# Extract subsections from text into dictionary
 		section_library = {}
-		section_library = self.separate_into_dictionary(contents, section_library, parent = self.master_key, field_type = 'section')
+		section_library = self.split_txt_to_dict(contents, section_library, parent = self.master_key, field_type = 'section')
 		if self.diagnostics: print(len(section_library), " Sections extracted \n", section_library)
 		
 		# Extract zettels from text into dictionary
 		for key, sub_section in section_library.items():
 			zettel_library = {} # Prevent RuntimeError: dictionary changed size during iteration
-			zettel_library = self.separate_into_dictionary(sub_section['zettel'],
+			zettel_library = self.split_txt_to_dict(sub_section['zettel'],
 				zettel_library , parent = key, field_type = 'zettel')
 			library.update({key: sub_section})
 			library[key]['zettel'] = self.generate_index_text(zettel_library)
@@ -137,21 +137,33 @@ class Zettelkasten:
 			index_contents += f"{key}{', ' + value['title'] if value['title'] else ''}. "
 		return index_contents
 
-	def separate_into_dictionary(self, text, library = {}, parent = '', field_type = ''):
+	def split_txt_to_dict(self, text, library = {}, parent = '', field_type = ''):
 		'''Extract subsections from text into dictionary using regex
 		text: string including contents of multiple fields
 		library: to which fields will be added
-		parent: manually specifies parent of zettel. Overwritten if parent in field_type
+		parent (previously section_key): manually specifies parent of zettel.
+			Overwritten if parent in field_type
 		field_type: index, parent, zettel, reference'''
 		if 'section' in field_type:
 			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
-			section_key = self.timestamp()
+			parent = self.timestamp()
 		elif 'zettel' in field_type: pattern = r'\[\w{1,10}\]'
 		else: print('Field type error'); return library
-		key, end_index, field_name, field_contents = 0, 0, '', ''
+
 		search_results = re.finditer(pattern, text)
 
 		# iterate through results and find each field marker
+		key, library = self.sort_search_results_to_dict(
+			text, library, search_results, field_type, parent)
+		# clear empty entries
+		library = {k: v for k, v in library.items() if v['zettel']}
+		return library
+
+	def sort_search_results_to_dict(self, text, library, search_results, field_type, parent):
+		'''iterate through results and find each field marker to sort into library'''
+
+		key, end_index, field_name, field_contents = 0, 0, '', ''
+
 		for result in search_results:
 			if self.diagnostics: print(f"Key: {key}, search result: {result}")
 			
@@ -170,27 +182,29 @@ class Zettelkasten:
 			next_start_index = result.start()
 			field_contents =  self.clean_text(text[end_index: next_start_index], False)
 			start_index, end_index = result.span()
-			if self.diagnostics: print(result, '\n', start_index, field_name, field_contents)
 
-			# store in dictionary according to section or zettel
-			if 'section' in field_type:
-				key, library = self.store_subsections(library, section_key, field_name, field_contents)
-			elif 'zettel' in field_type:
-				key, library = self.store_fields(library, key, parent, field_name, field_contents)
-			
+			# store field into library
+			key, library = self.store_contents_to_lib(library, key, parent,
+				field_name, field_contents, field_type)
 			# update field_name
 			field_name = self.clean_text(result.group(), False)
 
 		# capture final entry
 		field_contents = self.clean_text(text[end_index:-1], False)
-		if self.diagnostics: print(field_contents)
+		key, library = self.store_contents_to_lib(library, key, parent,
+			field_name, field_contents, field_type)
+
+		return key, library
+
+	def store_contents_to_lib(self, library, key, parent, field_name, field_contents, field_type):
+		'''Store zettelkasten contents or sections into fields in library'''
+		if self.diagnostics: print('store_contents_to_lib: ', field_name, field_contents)
+		# store in dictionary according to section or zettel
 		if 'section' in field_type:
-			key, library = self.store_subsections(library, section_key, field_name, field_contents)
+			key, library = self.store_subsections(library, parent, field_name, field_contents)
 		elif 'zettel' in field_type:
 			key, library = self.store_fields(library, key, parent, field_name, field_contents)
-		# clear empty entries
-		library = {k: v for k, v in library.items() if v['zettel']}
-		return library
+		return key, library
 
 	def store_subsections(self, library = {}, parent = 0, field_name = '', field_contents = ''):
 		'''Store chunk of text in dictionary with section heading as title and section as zettel'''
@@ -286,7 +300,7 @@ class Zettelkasten:
 if __name__ == '__main__':
 	zkn = Zettelkasten(diagnostics = False)
 	# zkn.library = zkn.import_csv_zk()
-	# file_path = zkn.find_file()
+	# file_path = zkn.tkgui_getfile()
 	file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
 	zkn.library = zkn.import_txt_zk(file_path = file_path)
