@@ -60,7 +60,8 @@ class Zettel:
 		self.keyword = ''
 
 	def __str__(self):
-		return self.title
+		return f"[parent] {self.parent} [title] {self.title}\
+				\n[zettel] {self.zettel} \n[reference] {self.reference} \n[keyword] {self.keyword}"
 
 	def clean_text(self, text, capitals = False):
 		'''Scrub string of double spaces, colons, and capitalize'''
@@ -80,7 +81,7 @@ class Zettel:
 		field_contents: string body of field
 		'''
 		field_name = field_name.lower()
-		# print('store_fields: ', field_name, field_contents)
+		# print('store_fields: ', f ield_name, field_contents)
 
 		if 'title' in field_name:
 			self.title = self.clean_text(field_contents, True)
@@ -296,9 +297,8 @@ class Zettelkasten(Zettel):
 	def export_zk_txt(self, file_path, library):
 		'''Write dictionary from memory to txt'''
 		txt_output = open(file_path + '_' + str(self.master_key) + '.txt','w', newline='')
-		for key, dictionary in library.items():
-			txt_output.write(f"[index] {key} [parent] {dictionary['parent']} [title] {dictionary['title']}\
-				\n[zettel] {dictionary['zettel']} \n[reference] {dictionary['reference']} \n[keyword] {dictionary['keyword']}\n\n")
+		for key, zettel in library.items():
+			txt_output.write(f"[index] {key} {zettel}\n\n")
 		txt_output.close()
 		pass
 
@@ -316,7 +316,7 @@ if __name__ == '__main__':
 	print(path_root)
 	# print(zkn.extract_filepath(path_root))
 	# zkn.export_zk_csv(zkn.extract_filepath(filepath), zkn.library)
-	# zkn.export_zk_txt(zkn.extract_filepath(filepath), zkn.library)
+	zkn.export_zk_txt(path_root, zkn.library)
 	# del zkn
 	# zkn = Zettelkasten(diagnostics = False)
 	# print(len(zkn.library))
