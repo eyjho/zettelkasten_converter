@@ -87,15 +87,12 @@ class Zettelkasten:
 			for row in contents:
 				text = ' '.join([f"[{field_name.lower()}] {contents}" for field_name, contents in row.items()])
 				if self.diagnostics: print("Imported dict: ", text)
-				library = self.separate_into_dictionary(text, library, parent = '', field_type = 'zettel')
+				library = self.split_txt_to_dict(text, library, parent = '', field_type = 'zettel')
 			my_file.close()
 		return library
 
-	def import_txt_zk(self, library = None, file_path = None):
-		'''Read txt file and save into memory'''
-		# Clean out library
-		if library == None: library = dict()
-
+	def import_txt_to_str(self, file_path = None):
+		'''Read txt file and return library'''
 		# check file type
 		if file_path == None: file_path = self.file_path
 		if not file_path.lower().endswith('.txt'):
@@ -103,9 +100,11 @@ class Zettelkasten:
 			return library
 
 		with open(file_path, 'r', encoding = 'utf-8') as my_file:
-		    contents = my_file.read()
-		    if self.diagnostics: print("During import \n", contents)
-		    my_file.close()
+			contents = my_file.read()
+			if self.diagnostics: print("During import \n", contents)
+			my_file.close()
+
+		return contents
 
 		self.master_key = self.timestamp()
 
