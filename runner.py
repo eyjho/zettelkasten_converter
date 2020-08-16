@@ -16,7 +16,7 @@ def suite():
 	return suite
 
 if __name__ == '__main__':
-	zkn = Zettelkasten(diagnostics = False)
+	# zkn = Zettelkasten(diagnostics = False)
 	loader = unittest.TestLoader()
 	loader.sortTestMethodsUsing = None
 	runner = unittest.TextTestRunner(verbosity=1)

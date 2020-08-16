@@ -61,7 +61,6 @@ class Context():
 
 		# ...
 
-
 class Strategy(Zettelkasten):
 	"""
 	The Strategy interface declares operations common to all supported versions	of some algorithm.
@@ -70,22 +69,18 @@ class Strategy(Zettelkasten):
 	"""
 
 	# @abstractmethod
-
 	def do_algorithm(self, data: List):
 		pass
-
 
 """
 Concrete Strategies implement the algorithm while following the base Strategy
 interface. The interface makes them interchangeable in the Context.
 """
 
-
 class import_csv(Strategy):
 	def do_algorithm(self, data: Dict) -> Dict:
 		file_path = 'C:/Users/Eugene/Documents/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
 		return self.import_csv_zk(file_path = file_path)
-
 
 class import_txt(Strategy):
 	def do_algorithm(self, data: List) -> List:
@@ -95,8 +90,7 @@ class import_txt(Strategy):
 
 if __name__ == "__main__":
 	# The client code picks a concrete strategy and passes it to the context.
-	# The client should be aware of the differences between strategies in order
-	# to make the right choice.
+	# The client should be aware of the differences between strategies to make the right choice.
 
 	context = Context(import_csv())
 	print("Client: Strategy is set to import csv.")

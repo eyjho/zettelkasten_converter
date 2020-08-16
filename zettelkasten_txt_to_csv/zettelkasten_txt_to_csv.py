@@ -30,7 +30,27 @@ import tkinter as tk
 from tkinter import filedialog
 from datetime import datetime, timezone
 
+class Controller:
+	'''Provide GUI to choose file and split into path root and extension'''
+
+	def __init__(self):
+		self.file_path = ''
+
+	def tkgui_getfile(self, message = "Select file"):
+		'''Select file with dialog and check'''
+		root = tk.Tk(); root.withdraw()		
+		self.file_path = filedialog.askopenfilename(
+			initialdir = "..\\data",title = message)
+
+		return self.file_path
+
+	def split_path(self, path):
+		'''os.path.splitext file path to separate path root and .extension'''
+		path_root, extension = os.path.splitext(path)
+		return path_root, extension
+
 class Zettelkasten:
+	'''Convert zettelkasten between txt and csv formats'''
 
 	def __init__(self, diagnostics = False):
 		'''Initialise library[key = UID] of dictionaries[keys = parent, title, contents, reference, keyword]'''
@@ -39,36 +59,9 @@ class Zettelkasten:
 		self.master_key = 0
 		self.file_path = ''
 
-
-	def display(self):
-		'''Show all zettels'''
-		pass
-
-	def tkgui_getfile(self, message = "Select file"):
-		'''Select file with dialog and check'''
-		if self.diagnostics:
-			self.file_path = 'C:/Users/Eugene/Documents\
-/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
-
-# 		'C:/Users/Eugene/Documents\
-# /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
-			print(self.file_path)
-
-		else:
-			root = tk.Tk()
-			root.withdraw()		
-			self.file_path = filedialog.askopenfilename(
-				initialdir = "..\\data",title = message)
-
-		return self.file_path
-
-	def split_path(self, path):
-		'''os.path.splitext file path to separate path root and .extension'''
-		# filename = re.split('/+|\\\\+|[.]', file_path)[-2] # to extract filename
-		path_root, extension = os.path.splitext(path)
-		# vulnerable to any periods in filename
-		if self.diagnostics: print(new_path)
-		return path_root, extension
+	def display(self, quantity):
+		'''Show some number of zettels'''
+		for key, value in self.library.items(): print(key, value['zettel'])
 
 	def import_csv_zk(self, library = None, file_path = None):
 		'''Read csv file and save into memory'''
@@ -110,7 +103,7 @@ class Zettelkasten:
 		'''Separate text into library'''
 		# Clean out library
 		if library == None: library = dict()
-		self.master_key = self.gsheets_timestamp)
+		self.master_key = self.gsheets_timestamp()
 
 		# Extract subsections from text into dictionary
 		section_library = {}
@@ -118,11 +111,6 @@ class Zettelkasten:
 		if self.diagnostics: print(len(section_library), " Sections extracted \n", section_library)
 		
 		library = self.split_section_lib_to_zettel_lib(section_library, library)
-
-		if self.diagnostics:
-			print("Library full")
-			for key, value in library.items(): print(key, value)
-
 		return library
 
 	def split_section_lib_to_zettel_lib(self, section_library, library):
@@ -152,7 +140,7 @@ class Zettelkasten:
 		field_type: index, parent, zettel, reference'''
 		if 'section' in field_type:
 			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
-			parent = self.gsheets_timestamp)
+			parent = self.gsheets_timestamp()
 		elif 'zettel' in field_type: pattern = r'\[\w{1,10}\]'
 		else: print('Field type error'); return library
 
@@ -214,7 +202,7 @@ class Zettelkasten:
 
 	def store_subsections(self, library = {}, parent = 0, field_name = '', field_contents = ''):
 		'''Store chunk of text in dictionary with section heading as title and section as zettel'''
-		key = self.gsheets_timestamp)
+		key = self.gsheets_timestamp()
 		if key in library.keys(): print('Error: Duplicate key while storing subsection')
 		library[key] = dict(parent = parent, title = field_name,
 			zettel = field_contents, reference = '', keyword = '')
@@ -256,11 +244,10 @@ class Zettelkasten:
 			library[key]['parent'] = field_contents
 
 		elif 'index' in field_name: # create new dictionary entry at each instance of 'index'
-			key = self.gsheets_timestamp) if len(field_contents) < 3 else field_contents
+			key = self.gsheets_timestamp() if len(field_contents) < 3 else field_contents
 			if key in library.keys(): print('Error: Duplicate key when assigning index')
 			else: library[key] = dict(parent = parent, title = '', zettel = '', reference = '', keyword = '')
 			if self.diagnostics: print("Index assigned: ", key, library[key])
-
 		else: print('Error: Field not identified')
 
 		return key, library
@@ -274,7 +261,7 @@ class Zettelkasten:
 			return text[0].upper() + text[1:] if capitals else text
 		else: return text
 
-	def gsheets_timestampself):
+	def gsheets_timestamp(self):
 		'''Generate timestamp in Googlesheets format UTC (counts days from 30/12/1899)'''
 
 		time.sleep(0.01) # 0.01s necessary to allow timestamp to update to new value
@@ -305,15 +292,15 @@ class Zettelkasten:
 
 if __name__ == '__main__':
 	zkn = Zettelkasten(diagnostics = False)
-	# zkn.library = zkn.import_csv_zk()
-	# file_path = zkn.tkgui_getfile()
+	controller = Controller()
+	# file_path = controller.tkgui_getfile()
 	file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
 	contents = ''
 	contents = zkn.import_txt_to_str(file_path = file_path)
 	zkn.library = zkn.split_str_text_to_lib(contents = contents)
 	print(type(zkn.library))
-	path_root, extension = zkn.split_path(file_path)
+	path_root, extension = controller.split_path(file_path)
 	print(path_root)
 	# print(zkn.extract_filepath(path_root))
 	# zkn.export_zk_csv(zkn.extract_filepath(filepath), zkn.library)

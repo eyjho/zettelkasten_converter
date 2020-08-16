@@ -7,15 +7,16 @@ https://realpython.com/python-testing/#writing-your-first-test
 '''
 
 import unittest
-from zettelkasten_txt_to_csv.zettelkasten_txt_to_csv import Zettelkasten
+from zettelkasten_txt_to_csv.zettelkasten_txt_to_csv import Zettelkasten, Controller
 
 class TestZettelkasten(unittest.TestCase):
 	'''Unit test for key functions of zettelkasten converter'''
 
 	def setUp(self):
 		'''Run before every subsequent test'''
-		global zkn
+		global zkn, controller
 		zkn = Zettelkasten(diagnostics = False)
+		controller = Controller()
 		self.library_length = 73
 
 	def test_template(self):
@@ -26,7 +27,7 @@ class TestZettelkasten(unittest.TestCase):
 
 	def test_tkgui_getfile(self):
 		'''Select "Zettelkasten v0_2.csv and return file_path'''
-		result = zkn.tkgui_getfile('Select Zettelkasten v0_2.csv')
+		result = controller.tkgui_getfile('Select Zettelkasten v0_2.csv')
 		correct_answer = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
 		self.assertEqual(result, correct_answer)
@@ -36,7 +37,7 @@ class TestZettelkasten(unittest.TestCase):
 		# print('file_path: ', zkn.file_path) # zkn.file_path empty in test but fine in operation
 		file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
-		result, extension = zkn.split_path(file_path)
+		result, extension = controller.split_path(file_path)
 		correct_answer = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2'
 		self.assertEqual(result, correct_answer)
