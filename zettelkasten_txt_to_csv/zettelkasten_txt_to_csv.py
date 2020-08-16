@@ -49,7 +49,63 @@ class Controller:
 		path_root, extension = os.path.splitext(path)
 		return path_root, extension
 
-class Zettelkasten:
+class Zettel:
+	'''Import and export information for one zettel with index as variable name'''
+
+	def __init__(self):
+		self.parent = ''
+		self.title = ''
+		self.zettel = ''
+		self.reference = ''
+		self.keyword = ''
+
+	def __str__(self):
+		return self.title
+
+	def clean_text(self, text, capitals = False):
+		'''Scrub string of double spaces, colons, and capitalize'''
+		text = " ".join(text.split()) # remove double spaces
+
+		if len(text) > 1: # empty/short strings create index errors
+			text = text.translate(str.maketrans(';', ',')) # replace certain characters
+			return text[0].upper() + text[1:] if capitals else text
+		else: return text
+
+	def store_fields(self, library = {}, key = 0, parent = 0, field_name = '', field_contents = ''):
+		'''Store previously extracted zettelkasten into dictionary
+		library: to which fields will be added
+		key: index of zettel to which field belongs
+		parent: manually specify parent field
+		field_name: string - index, parent, zettel, reference
+		field_contents: string body of field
+		'''
+		field_name = field_name.lower()
+		# print('store_fields: ', field_name, field_contents)
+
+		if 'title' in field_name:
+			self.title = self.clean_text(field_contents, True)
+
+		elif 'zettel' in field_name and ':' not in field_contents:
+			self.zettel = self.clean_text(field_contents, True)
+		
+		# split contents into title and zettel if colon present and title empty
+		elif 'zettel' in field_name and ':' in field_contents and not self.title:
+			split_contents = re.split('[:]', field_contents)
+			self.title = self.clean_text(split_contents[0], True)
+			self.zettel = self.clean_text(split_contents[1], True)
+
+		elif 'reference' in field_name:
+			self.reference = field_contents
+
+		elif 'keyword' in field_name:
+			self.keyword = field_contents
+
+		elif 'parent' in field_name:
+			self.parent = field_contents
+
+		else: print('Error: Field not identified')
+
+class Zettelkasten(Zettel):
 	'''Convert zettelkasten between txt and csv formats'''
 
 	def __init__(self, diagnostics = False):
@@ -96,18 +152,44 @@ class Zettelkasten:
 
 		return contents
 
+	def split_txt_to_dict(self, text, library = {}, parent = '', field_type = ''):
+		'''Extract subsections from text into dictionary using regex
+		text: string including contents of multiple fields
+		library: to which fields will be added
+		parent (previously section_key): manually specifies parent of zettel.
+			Overwritten if parent in field_type
+		field_type: index, parent, zettel, reference'''
+		if 'section' in field_type:
+			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
+			parent = self.gsheets_timestamp()
+		elif 'zettel' in field_type:
+			pattern = r'\[\w{1,10}\]'
+			parent = self.gsheets_timestamp() # temp
+		else: print('Field type error'); return library
+
+		search_results = re.finditer(pattern, text)
+
+		# iterate through results and find each field marker
+		key, library = self.sort_search_results_to_dict(
+			text, library, search_results, field_type, parent)
+		# clear empty entries
+		library = {k: v for k, v in library.items() if v.zettel}
+		return library
+
 	def split_str_text_to_lib(self, library = None, contents = ''):
 		'''Separate text into library'''
 		# Clean out library
 		if library == None: library = dict()
 		self.master_key = self.gsheets_timestamp()
 
-		# Extract subsections from text into dictionary
-		section_library = {}
-		section_library = self.split_txt_to_dict(contents, section_library, parent = self.master_key, field_type = 'section')
-		if self.diagnostics: print(len(section_library), " Sections extracted \n", section_library)
+		# # Extract subsections from text into dictionary
+		# section_library = {}
+		# section_library = self.split_txt_to_dict(contents, section_library, parent = self.master_key, field_type = 'section')
+		# if self.diagnostics: print(len(section_library), " Sections extracted \n", section_library)
 		
-		library = self.split_section_lib_to_zettel_lib(section_library, library)
+		# library = self.split_section_lib_to_zettel_lib(section_library, library)
+		library = self.split_txt_to_dict(contents, library, field_type = 'zettel')
+		# print(contents, library)
 		return library
 
 	def split_section_lib_to_zettel_lib(self, section_library, library):
@@ -128,30 +210,8 @@ class Zettelkasten:
 			index_contents += f"{key}{', ' + value['title'] if value['title'] else ''}. "
 		return index_contents
 
-	def split_txt_to_dict(self, text, library = {}, parent = '', field_type = ''):
-		'''Extract subsections from text into dictionary using regex
-		text: string including contents of multiple fields
-		library: to which fields will be added
-		parent (previously section_key): manually specifies parent of zettel.
-			Overwritten if parent in field_type
-		field_type: index, parent, zettel, reference'''
-		if 'section' in field_type:
-			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
-			parent = self.gsheets_timestamp()
-		elif 'zettel' in field_type: pattern = r'\[\w{1,10}\]'
-		else: print('Field type error'); return library
-
-		search_results = re.finditer(pattern, text)
-
-		# iterate through results and find each field marker
-		key, library = self.sort_search_results_to_dict(
-			text, library, search_results, field_type, parent)
-		# clear empty entries
-		library = {k: v for k, v in library.items() if v['zettel']}
-		return library
-
 	def sort_search_results_to_dict(self, text, library, search_results, field_type, parent):
-		'''iterate through results and find each field marker to sort into library'''
+		'''Iterate through results and find each field marker to sort into library'''
 
 		key, end_index, field_name, field_contents = 0, 0, '', ''
 
@@ -188,13 +248,20 @@ class Zettelkasten:
 
 	def store_contents_to_lib(self, library, key, parent, field_name, field_contents, field_type):
 		'''Store zettelkasten contents or sections into fields in library'''
-		if self.diagnostics: print('store_contents_to_lib: ', field_name, field_contents)
+		
 		# store in dictionary according to section or zettel
 		if 'section' in field_type:
 			key, library = self.store_subsections(library, parent, field_name, field_contents)
 		elif 'zettel' in field_type:
-			key, library = self.store_fields(library, key, parent, field_name, field_contents)
-		
+			if 'index' in field_name: # create new dictionary entry at each instance of 'index'
+				key = self.gsheets_timestamp() if len(field_contents) < 5 else field_contents
+				if key in library.keys(): print('Error: Duplicate key when assigning index')
+				else: library[key] = Zettel()
+				if self.diagnostics: print("Index assigned: ", key, library[key])
+			
+			else: library[key].store_fields(library, key, parent, field_name, field_contents)
+
+		else: print('Error: Field type (zettel/section) not identified')
 		return key, library
 
 	def store_subsections(self, library = {}, parent = 0, field_name = '', field_contents = ''):
@@ -205,58 +272,6 @@ class Zettelkasten:
 			zettel = field_contents, reference = '', keyword = '')
 
 		return key, library
-
-	def store_fields(self, library = {}, key = 0, parent = 0, field_name = '', field_contents = ''):
-		'''Store previously extracted zettelkasten into dictionary
-		library: to which fields will be added
-		key: index of zettel to which field belongs
-		parent: manually specify parent field
-		field_name: string - index, parent, zettel, reference
-		field_contents: string body of field
-		'''
-		field_name = field_name.lower()
-
-		if self.diagnostics: print(f"Key: {key}, field_name: {field_name}, contents: {field_contents}")
-
-		if 'title' in field_name:
-			library[key]['title'] = self.clean_text(field_contents, True)
-
-		elif 'zettel' in field_name and ':' not in field_contents:
-			library[key]['zettel'] = self.clean_text(field_contents, True)
-		
-		# split contents into title and zettel if colon present and title empty
-		elif 'zettel' in field_name and ':' in field_contents and not library[key]['title']:
-			if self.diagnostics: print('Splitting title')
-			split_contents = re.split('[:]', field_contents)
-			library[key]['title'] = self.clean_text(split_contents[0], True)
-			library[key]['zettel'] = self.clean_text(split_contents[1], True)
-
-		elif 'reference' in field_name:
-			library[key]['reference'] = field_contents
-
-		elif 'keyword' in field_name:
-			library[key]['keyword'] = field_contents
-
-		elif 'parent' in field_name:
-			library[key]['parent'] = field_contents
-
-		elif 'index' in field_name: # create new dictionary entry at each instance of 'index'
-			key = self.gsheets_timestamp() if len(field_contents) < 3 else field_contents
-			if key in library.keys(): print('Error: Duplicate key when assigning index')
-			else: library[key] = dict(parent = parent, title = '', zettel = '', reference = '', keyword = '')
-			if self.diagnostics: print("Index assigned: ", key, library[key])
-		else: print('Error: Field not identified')
-
-		return key, library
-
-	def clean_text(self, text, capitals = False):
-		'''Scrub string of double spaces, colons, and capitalize'''
-		text = " ".join(text.split()) # remove double spaces
-
-		if len(text) > 1: # empty/short strings create index errors
-			text = text.translate(str.maketrans(';', ',')) # replace certain characters
-			return text[0].upper() + text[1:] if capitals else text
-		else: return text
 
 	def gsheets_timestamp(self):
 		'''Generate timestamp in Googlesheets format UTC (counts days from 30/12/1899)'''
@@ -296,7 +311,7 @@ if __name__ == '__main__':
 	contents = ''
 	contents = zkn.import_txt_to_str(file_path = file_path)
 	zkn.library = zkn.split_str_text_to_lib(contents = contents)
-	print(type(zkn.library))
+	print(zkn.library.keys())
 	path_root, extension = controller.split_path(file_path)
 	print(path_root)
 	# print(zkn.extract_filepath(path_root))
