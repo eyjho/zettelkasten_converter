@@ -89,7 +89,7 @@ class Zettel:
 		field_contents: string body of field
 		'''
 		field_name = field_name.lower()
-		print('store_zettel: ', field_name)#, field_contents)
+		# print('store_zettel: ', field_name)#, field_contents)
 
 		if 'title' in field_name:
 			self.title = self.clean_text(field_contents, True)
@@ -112,7 +112,7 @@ class Zettel:
 		elif 'parent' in field_name:
 			self.parent = field_contents
 
-		else: print('Error: Field not identified')
+		else: print(f'Error: Field {field_name} not identified')
 
 class Zettelkasten(Zettel):
 	'''Convert zettelkasten between txt and csv formats'''
@@ -125,7 +125,7 @@ class Zettelkasten(Zettel):
 
 	def display(self, quantity):
 		'''Show some number of zettels'''
-		for key, value in self.library.items(): print(key, value['zettel'])
+		for key, value in list(self.library.items())[:quantity]: print(key, value.zettel)
 
 	def import_csv_zk(self, library = None, file_path = ''):
 		'''Read csv file and save into memory'''
@@ -214,6 +214,7 @@ class Zettelkasten(Zettel):
 
 		for field_name, field_contents in fields_list:
 		# store in dictionary according to section or zettel
+			# print('store_list_to_lib: ', field_name)#, field_contents)
 			if 'section' in field_type:
 				parent = self.gsheets_timestamp()
 				key, library = self.store_subsections(library, parent, field_name, field_contents)
@@ -228,7 +229,8 @@ class Zettelkasten(Zettel):
 				parent = 0
 				library[key].store_zettel(library, key, parent, field_name, field_contents)
 
-			else: print('Error: Field type (zettel/section) not identified')
+			elif not field_name: pass
+			else: print(f'Error: Field type {field_type} not recognised')
 		return key, library
 
 	def split_section_lib(self, section_library, library):
@@ -411,13 +413,15 @@ if __name__ == '__main__':
 	field_type = 'section'
 	search_results = zkn.find_sections_in_txt(contents, field_type = field_type)
 	fields_list = zkn.sort_search_results_to_list(contents, search_results)
-	print([field_name for field_name, field_contents in fields_list])
-	
-	key, zkn.library = zkn.store_list_to_lib(fields_list, field_type)
+	# print([field_name for field_name, field_contents in fields_list])
+	key, section_library = zkn.store_list_to_lib(fields_list, field_type)
+	zkn.library = zkn.split_section_lib(section_library, {})
+	zkn.display(10)
+	print(len(zkn.library))
 	# key, zkn.library = zkn.sort_search_results_to_dict(
 	# contents, {}, search_results, field_type, parent)
 	# zkn.library = zkn.split_str_text_to_lib(contents = contents)
-	print(zkn.library.keys())
+	# [print(zettel) for zettel in zkn.library.values()]
 	# path_root, extension = controller.split_path(file_path)
 	# print(path_root)
 	# print(zkn.extract_filepath(path_root))
