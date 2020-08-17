@@ -123,9 +123,10 @@ class Zettelkasten(Zettel):
 		self.library = {}
 		self.master_key = 0
 
-	def display(self, quantity):
+	def display(self, quantity, start_index = 0):
 		'''Show some number of zettels'''
-		for key, value in list(self.library.items())[:quantity]: print(key, value.zettel)
+		for key, value in list(self.library.items())[start_index:start_index+quantity]:
+			print(key, value.zettel)
 
 	def import_csv_zk(self, library = None, file_path = ''):
 		'''Read csv file and save into memory'''
@@ -416,7 +417,7 @@ if __name__ == '__main__':
 	# print([field_name for field_name, field_contents in fields_list])
 	key, section_library = zkn.store_list_to_lib(fields_list, field_type)
 	zkn.library = zkn.split_section_lib(section_library, {})
-	zkn.display(10)
+	zkn.display(5, -6)
 	print(len(zkn.library))
 	# key, zkn.library = zkn.sort_search_results_to_dict(
 	# contents, {}, search_results, field_type, parent)
