@@ -153,6 +153,55 @@ class Zettelkasten(Zettel):
 
 		return contents
 
+	def find_sections_in_txt(self, contents, library = {}, parent = '', field_type = ''):
+		'''Extract subsections as search results from text using regex'''
+		if 'section' in field_type:
+			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
+			parent = self.gsheets_timestamp()
+		elif 'zettel' in field_type:
+			pattern = r'\[\w{1,10}\]'
+			parent = self.gsheets_timestamp() # temp
+		else: print('Field type error'); return None
+
+		search_results = re.finditer(pattern, contents)
+		return search_results, parent
+
+	def sort_search_results_to_tuple(self, contents, search_results):
+		'''Iterate results and find each field marker to sort into tuple'''
+
+		key, end_index, field_name, field_contents = 0, 0, '', ''
+		fields_out_list = []
+
+		for result in search_results:
+			if self.diagnostics: print(f"Key: {key}, search result: {result}")
+			
+			# for sections, capture set of text before first subtitle
+			if not end_index:
+				start_index, end_index, field_name = 0, 0, ''
+
+			# extract and clean field contents
+			next_start_index = result.start()
+			field_contents =  self.clean_text(contents[end_index: next_start_index], False)
+			start_index, end_index = result.span()
+
+			# store fields into tuple
+			fields_out_list.append((field_name, field_contents))
+
+			# # store field into library
+			# key, library = self.store_contents_to_lib(library, key, parent,
+			# 	field_name, field_contents, field_type)
+			# update field_name
+			field_name = self.clean_text(result.group(), False)
+
+		# capture final entry
+		field_contents = self.clean_text(contents[end_index:-1], False)
+		fields_out_list.append((field_name, field_contents))
+		# key, library = self.store_contents_to_lib(library, key, parent,
+			# field_name, field_contents, field_type)
+
+		return fields_out_list
+
+
 	def split_txt_to_dict(self, text, library = {}, parent = '', field_type = ''):
 		'''Extract subsections from text into dictionary using regex
 		text: string including contents of multiple fields
@@ -310,13 +359,19 @@ if __name__ == '__main__':
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
 	contents = ''
 	contents = zkn.import_txt_to_str(file_path = file_path)
-	zkn.library = zkn.split_str_text_to_lib(contents = contents)
-	print(zkn.library.keys())
-	path_root, extension = controller.split_path(file_path)
-	print(path_root)
+	field_type = 'section'
+	search_results, parent = zkn.find_sections_in_txt(contents, field_type = field_type)
+	fields_tuple = zkn.sort_search_results_to_tuple(contents, search_results)
+	print([field_name for field_name, field_contents in fields_tuple])
+	# key, zkn.library = zkn.sort_search_results_to_dict(
+	# contents, {}, search_results, field_type, parent)
+	# zkn.library = zkn.split_str_text_to_lib(contents = contents)
+	# print(zkn.library.keys())
+	# path_root, extension = controller.split_path(file_path)
+	# print(path_root)
 	# print(zkn.extract_filepath(path_root))
 	# zkn.export_zk_csv(zkn.extract_filepath(filepath), zkn.library)
-	zkn.export_zk_txt(path_root, zkn.library)
+	# zkn.export_zk_txt(path_root, zkn.library)
 	# del zkn
 	# zkn = Zettelkasten(diagnostics = False)
 	# print(len(zkn.library))
