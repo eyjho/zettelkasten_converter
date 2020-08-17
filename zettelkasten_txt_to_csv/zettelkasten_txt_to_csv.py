@@ -58,6 +58,7 @@ class Zettel:
 		self.zettel = ''
 		self.reference = ''
 		self.keyword = ''
+		self.type = ''
 
 	def __str__(self):
 		return f"[parent] {self.parent} [title] {self.title}\
@@ -77,6 +78,7 @@ class Zettel:
 		self.parent = parent
 		self.title = field_name.lower()
 		self.zettel = field_contents
+		self.type = 'section'
 
 	def store_zettel(self, library = {}, key = 0, parent = 0, field_name = '', field_contents = ''):
 		'''Store previously extracted zettelkasten into dictionary
@@ -206,7 +208,7 @@ class Zettelkasten(Zettel):
 
 		return fields_out_list
 
-	def store_list_to_lib(self, fields_list, field_type):
+	def store_list_to_lib(self, fields_list, field_type, key = 0):
 		'''Store zettelkasten contents or sections into fields in library'''
 		library = dict()
 
@@ -222,10 +224,30 @@ class Zettelkasten(Zettel):
 				else: library[key] = Zettel()
 				if self.diagnostics: print("Index assigned: ", key, library[key])
 				
-			elif 'zettel' in field_type: library[key].store_zettel(library, key, parent, field_name, field_contents)
+			elif 'zettel' in field_type and key:
+				parent = 0
+				library[key].store_zettel(library, key, parent, field_name, field_contents)
 
 			else: print('Error: Field type (zettel/section) not identified')
 		return key, library
+
+	def split_section_lib(self, section_library, library):
+		'''Extract zettels from section dictionary into dictionary'''
+		for key, index_zettel in section_library.items():
+			zettel_library = {} # Prevent RuntimeError: dictionary changed size during iteration
+			contents = index_zettel.zettel
+			field_type = 'zettel'
+			search_results = self.find_sections_in_txt(contents, field_type = field_type)
+			fields_list = self.sort_search_results_to_list(contents, search_results)
+			key, library = self.store_list_to_lib(fields_list, field_type)
+			# zettel_library = self.split_txt_to_dict(sub_section['zettel'],
+			# 	zettel_library , parent = key, field_type = 'zettel')
+			# library.update({key: sub_section})
+			# library[key]['zettel'] = self.generate_index_text(zettel_library)
+			# library.update(zettel_library)
+		return library
+
+# older functions
 
 	def split_txt_to_dict(self, text, library = {}, parent = '', field_type = ''):
 		'''Extract subsections from text into dictionary using regex
