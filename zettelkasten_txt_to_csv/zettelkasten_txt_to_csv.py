@@ -242,7 +242,8 @@ class Zettelkasten(Zettel):
 			field_type = 'zettel'
 			search_results = self.find_sections_in_txt(contents, field_type = field_type)
 			fields_list = self.sort_search_results_to_list(contents, search_results)
-			key, library = self.store_list_to_lib(fields_list, field_type)
+			key, zettel_library = self.store_list_to_lib(fields_list, field_type)
+			library.update(zettel_library)
 			# zettel_library = self.split_txt_to_dict(sub_section['zettel'],
 			# 	zettel_library , parent = key, field_type = 'zettel')
 			# library.update({key: sub_section})
