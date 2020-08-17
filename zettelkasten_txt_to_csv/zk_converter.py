@@ -128,7 +128,7 @@ class Zettelkasten(Zettel):
 
 		return contents
 
-	def find_sections_in_txt(self, contents, library = {}, parent = '', field_type = ''):
+	def find_sections_in_txt(self, contents, library = {}, field_type = ''):
 		'''Extract subsections as search results from text using regex'''
 		if 'section' in field_type:
 			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
@@ -165,8 +165,20 @@ class Zettelkasten(Zettel):
 		# capture final entry
 		field_contents = self.clean_text(contents[end_index:-1], False)
 		yield field_name, field_contents
-		# key, library = self.store_contents_to_lib(library, key, parent,
-			# field_name, field_contents, field_type)
+
+	def split_section_lib(self, contents, field_type, parent):
+		'''Store contents into zettels'''
+		field_lib, library, key = dict(), dict(), 0
+		search_results = self.find_sections_in_txt(contents, field_type = field_type)
+		results_generator = self.sort_search_results_to_tuple(contents, search_results)
+		for fields_tuple in results_generator:
+			key, field_lib = self.store_tuple_to_lib(fields_tuple, field_type, field_lib, key, parent)
+			library.update(field_lib)
+
+		# clear empty entries
+		library = {k: v for k, v in library.items() if v.zettel}
+		return library
+
 
 	def store_tuple_to_lib(self, fields_tuple, field_type, library = None, key = 0, parent = 0):
 		'''Store zettelkasten contents or sections into fields in library'''
@@ -192,18 +204,6 @@ class Zettelkasten(Zettel):
 		
 		return key, library
 
-	def split_section_lib(self, contents):
-		field_type, field_lib, library, key = 'zettel', dict(), dict(), 0
-		search_results = self.find_sections_in_txt(contents, field_type = field_type)
-		results_generator = self.sort_search_results_to_tuple(contents, search_results)
-		for fields_tuple in results_generator:
-			key, field_lib = self.store_tuple_to_lib(fields_tuple, field_type, field_lib, key)
-			library.update(field_lib)
-
-		# clear empty entries
-		library = {k: v for k, v in library.items() if v.zettel}
-		return library
-
 	def gsheets_timestamp(self):
 		'''Generate timestamp in Googlesheets format UTC (counts days from 30/12/1899)'''
 
@@ -221,7 +221,9 @@ if __name__ == '__main__':
 	file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
 	contents = zkn.import_txt_to_str(file_path = file_path)
-	zkn.library = zkn.split_section_lib(contents)
-
+	parent = zkn.gsheets_timestamp()
+	field_type = 'zettel'
+	zkn.library = zkn.split_section_lib(contents, field_type, parent)
+	# print(zkn.library)
 	zkn.display(20)
 	print(len(zkn.library))

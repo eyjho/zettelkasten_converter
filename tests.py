@@ -86,7 +86,8 @@ class TestZkn_TXT(unittest.TestCase):
 		file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
 		contents = zkn.import_txt_to_str(file_path = file_path)
-		zkn.library = zkn.split_str_text_to_lib(contents = contents)
+		parent = zkn.gsheets_timestamp()
+		zkn.library = zkn.split_section_lib(contents, parent)
 		self.library_length = 66
 		self.section_num = 7
 
