@@ -80,7 +80,7 @@ class Zettel:
 		self.zettel = field_contents
 		self.type = 'section'
 
-	def store_zettel(self, library = {}, key = 0, parent = 0, field_name = '', field_contents = ''):
+	def store_zettel_field(self, library = {}, key = 0, parent = 0, field_name = '', field_contents = ''):
 		'''Store previously extracted zettelkasten into dictionary
 		library: to which fields will be added
 		key: index of zettel to which field belongs
@@ -89,7 +89,7 @@ class Zettel:
 		field_contents: string body of field
 		'''
 		field_name = field_name.lower()
-		# print('store_zettel: ', field_name)#, field_contents)
+		# print('store_zettel_field: ', field_name)#, field_contents)
 
 		if 'title' in field_name:
 			self.title = self.clean_text(field_contents, True)
@@ -126,7 +126,7 @@ class Zettelkasten(Zettel):
 	def display(self, quantity, start_index = 0):
 		'''Show some number of zettels'''
 		for key, value in list(self.library.items())[start_index:start_index+quantity]:
-			print(key, value.zettel)
+			print(f"[index] {key} [parent] {value.parent} [title] {value.title}")
 
 	def import_csv_zk(self, library = None, file_path = ''):
 		'''Read csv file and save into memory'''
@@ -366,7 +366,7 @@ class Zettelkasten(Zettel):
 				else: library[key] = Zettel()
 				if self.diagnostics: print("Index assigned: ", key, library[key])
 			
-			else: library[key].store_zettel(library, key, parent, field_name, field_contents)
+			else: library[key].store_zettel_field(library, key, parent, field_name, field_contents)
 
 		else: print('Error: Field type (zettel/section) not identified')
 		return key, library
