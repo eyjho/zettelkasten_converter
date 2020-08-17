@@ -227,26 +227,30 @@ class Zettelkasten(Zettel):
 			txt_output.write(f"[index] {key} {zettel}\n\n")
 		txt_output.close()
 
+	def run_txt(self, file_path):
+		'''Full procedure to import zettelkasten using file_path from txt 
+		incl section headers to zettels'''
+		library = dict()
+		contents = self.import_txt_to_str(file_path = file_path)
+		parent, field_type = self.gsheets_timestamp(), 'section'
+		section_zettel_generator = self.split_generator(contents, field_type, parent)
+		for parent, section_zettel in section_zettel_generator:
+			library.update({parent: section_zettel})
+			contents,field_type = section_zettel.zettel, 'zettel'
+			zettel_generator = self.split_generator(contents, field_type, parent)
+			for key, zettel in zettel_generator: library.update({key:zettel})
+		
+		# clear empty zettels
+		library = {k: v for k, v in library.items() if v.zettel}
+		return library
+
 if __name__ == '__main__':
 	zkn = Zettelkasten(diagnostics = False)
-	controller = Controller()
+	# controller = Controller()
 	# file_path = controller.tkgui_getfile()
 	file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
-	contents = zkn.import_txt_to_str(file_path = file_path)
-	parent = zkn.gsheets_timestamp()
-	field_type = 'section'
-	section_zettel_generator = zkn.split_generator(contents, field_type, parent)
-	for parent, section_zettel in section_zettel_generator:
-		zkn.library.update({key: section_zettel})
-		contents,field_type = section_zettel.zettel, 'zettel'
-		zettel_generator = zkn.split_generator(contents, field_type, parent)
-	
-		for key, zettel in zettel_generator: zkn.library.update({key:zettel})
-	
-	# print(zkn.library)
-	# clear empty entries
-	zkn.library = {k: v for k, v in zkn.library.items() if v.zettel}
+	zkn.library = zkn.run_txt(file_path)
 	zkn.display(-1)
 	print(len(zkn.library))
 
