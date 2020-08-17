@@ -166,19 +166,15 @@ class Zettelkasten(Zettel):
 		field_contents = self.clean_text(contents[end_index:-1], False)
 		yield field_name, field_contents
 
-	def split_section_lib(self, contents, field_type, parent):
-		'''Store contents into zettels'''
-		field_lib, library, key = dict(), dict(), 0
+	def split_generator(self, contents, field_type, parent):
+		'''Store contents into zettels and yield key, zettel pair'''
+		split_lib, key = dict(), 0
 		search_results = self.find_sections_in_txt(contents, field_type = field_type)
 		results_generator = self.sort_search_results_to_tuple(contents, search_results)
 		for fields_tuple in results_generator:
-			key, field_lib = self.store_tuple_to_lib(fields_tuple, field_type, field_lib, key, parent)
-			library.update(field_lib)
-
-		# clear empty entries
-		library = {k: v for k, v in library.items() if v.zettel}
-		return library
-
+			key, split_lib = self.store_tuple_to_lib(fields_tuple, field_type, split_lib, key, parent)
+			# ignore empty dictionary outputs
+			if split_lib: yield key, split_lib[key]
 
 	def store_tuple_to_lib(self, fields_tuple, field_type, library = None, key = 0, parent = 0):
 		'''Store zettelkasten contents or sections into fields in library'''
@@ -204,6 +200,17 @@ class Zettelkasten(Zettel):
 		
 		return key, library
 
+	def store_subsections(self, library = {}, parent = 0, field_name = '', field_contents = ''):
+		'''Store chunk of text in dictionary with section heading as title and section as zettel'''
+		key = self.gsheets_timestamp()
+		if key in library.keys(): print('Error: Duplicate key while storing subsection')
+		# library[key] = dict(parent = parent, title = field_name,
+			# zettel = field_contents, reference = '', keyword = '')
+		else:
+			library[key] = Zettel()
+			library[key].store_index_zettel(library, parent, field_name, field_contents)
+		return key, library
+
 	def gsheets_timestamp(self):
 		'''Generate timestamp in Googlesheets format UTC (counts days from 30/12/1899)'''
 
@@ -213,6 +220,12 @@ class Zettelkasten(Zettel):
 		if self.diagnostics: print(python_timestamp.seconds)
 		return '{:.8f}'.format(sheets_timestamp)
 
+	def export_zk_txt(self, file_path, library):
+		'''Write dictionary from memory to txt'''
+		txt_output = open(file_path + '_' + str(self.master_key) + '.txt','w', newline='')
+		for key, zettel in library.items():
+			txt_output.write(f"[index] {key} {zettel}\n\n")
+		txt_output.close()
 
 if __name__ == '__main__':
 	zkn = Zettelkasten(diagnostics = False)
@@ -222,8 +235,20 @@ if __name__ == '__main__':
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
 	contents = zkn.import_txt_to_str(file_path = file_path)
 	parent = zkn.gsheets_timestamp()
-	field_type = 'zettel'
-	zkn.library = zkn.split_section_lib(contents, field_type, parent)
+	field_type = 'section'
+	section_zettel_generator = zkn.split_generator(contents, field_type, parent)
+	for parent, section_zettel in section_zettel_generator:
+		zkn.library.update({key: section_zettel})
+		contents,field_type = section_zettel.zettel, 'zettel'
+		zettel_generator = zkn.split_generator(contents, field_type, parent)
+	
+		for key, zettel in zettel_generator: zkn.library.update({key:zettel})
+	
 	# print(zkn.library)
-	zkn.display(20)
+	# clear empty entries
+	zkn.library = {k: v for k, v in zkn.library.items() if v.zettel}
+	zkn.display(-1)
 	print(len(zkn.library))
+
+	# path_root, extension = controller.split_path(file_path)
+	# zkn.export_zk_txt(path_root, zkn.library)

@@ -402,7 +402,7 @@ class Zettelkasten(Zettel):
 		for key, zettel in library.items():
 			txt_output.write(f"[index] {key} {zettel}\n\n")
 		txt_output.close()
-		pass
+
 
 if __name__ == '__main__':
 	zkn = Zettelkasten(diagnostics = False)
