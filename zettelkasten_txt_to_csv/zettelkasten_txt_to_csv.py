@@ -232,6 +232,9 @@ class Zettelkasten(Zettel):
 
 			elif not field_name: pass
 			else: print(f'Error: Field type {field_type} not recognised')
+		
+		# clear empty entries
+		library = {k: v for k, v in library.items() if v.zettel}
 		return key, library
 
 	def split_section_lib(self, section_library, library):
@@ -249,6 +252,9 @@ class Zettelkasten(Zettel):
 			# library.update({key: sub_section})
 			# library[key]['zettel'] = self.generate_index_text(zettel_library)
 			# library.update(zettel_library)
+
+		# clear empty entries
+		library = {k: v for k, v in library.items() if v.zettel}
 		return library
 
 # older functions
