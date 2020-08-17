@@ -174,7 +174,7 @@ class Zettelkasten(Zettel):
 		search_results = re.finditer(pattern, contents)
 		return search_results
 
-	def sort_search_results_to_list(self, contents, search_results):
+	def sort_search_results_to_tuple(self, contents, results):
 		'''Iterate results and find each field marker to sort into tuple'''
 
 		key, end_index, field_name, field_contents = 0, 0, '', ''
@@ -182,7 +182,7 @@ class Zettelkasten(Zettel):
 
 		for result in search_results:
 			if self.diagnostics: print(f"Key: {key}, search result: {result}")
-			
+
 			# for sections, capture set of text before first subtitle
 			if not end_index:
 				start_index, end_index, field_name = 0, 0, ''
@@ -192,14 +192,10 @@ class Zettelkasten(Zettel):
 			field_contents =  self.clean_text(contents[end_index: next_start_index], False)
 			start_index, end_index = result.span()
 
-			# store fields into tuple
-			fields_out_list.append((field_name, field_contents))
-
-			# # store field into library
-			# key, library = self.store_contents_to_lib(library, key, parent,
-			# 	field_name, field_contents, field_type)
-			# update field_name
-			field_name = self.clean_text(result.group(), False)
+			# update field_name store fields into tuple
+			next_field_name = self.clean_text(result.group(), False)
+			fields_tuple = (field_name, field_contents)
+			yield fields_tuple, next_field_name
 
 		# capture final entry
 		field_contents = self.clean_text(contents[end_index:-1], False)
@@ -209,47 +205,46 @@ class Zettelkasten(Zettel):
 
 		return fields_out_list
 
-	def store_list_to_lib(self, fields_list, field_type, parent = 0):
+	def store_tuple_to_lib(self, fields_tuple, field_type, key = 0, parent = 0):
 		'''Store zettelkasten contents or sections into fields in library'''
 		library = dict()
+		# print('Fields_tuple: ', fields_tuple)
 
-		for field_name, field_contents in fields_list:
+		field_name, field_contents = fields_tuple
 		# store in dictionary according to section or zettel
-			# print('store_list_to_lib: ', field_name)#, field_contents)
-			if 'section' in field_type:
-				parent = self.gsheets_timestamp()
-				key, library = self.store_subsections(library, parent, field_name, field_contents)
-			elif not field_name or not field_contents: pass
-			elif 'zettel' in field_type and 'index' in field_name:
-			# create new dictionary entry at each instance of 'index'
-				key = self.gsheets_timestamp() if len(field_contents) < 5 else field_contents
-				if key in library.keys(): print('Error: Duplicate key when assigning index')
-				else: library[key] = Zettel(); library[key].parent = parent
-				if self.diagnostics: print("Index assigned: ", key, library[key])
-			elif 'zettel' in field_type and key:
-				library[key].store_zettel_field(library, key, parent, field_name, field_contents)
-			else: print(f'Error: Field type {field_type} not recognised')
+		# print('store_list_to_lib: ', field_name, field_contents)
+		if 'section' in field_type:
+			parent = self.gsheets_timestamp()
+			key, library = self.store_subsections(library, parent, field_name, field_contents)
+		elif not field_name or not field_contents: pass
+		elif 'zettel' in field_type and 'index' in field_name:
+		# create new dictionary entry at each instance of 'index'
+			key = self.gsheets_timestamp() if len(field_contents) < 5 else field_contents
+			if key in library.keys(): print('Error: Duplicate key when assigning index')
+			else: library[key] = Zettel(); library[key].parent = parent
+			if self.diagnostics: print("Index assigned: ", key, library[key])
+		elif 'zettel' in field_type and key:
+			library[key].store_zettel_field(library, key, parent, field_name, field_contents)
+		else: print(f'Error: Field type {field_type} not recognised')
 		
-		# clear empty entries
-		library = {k: v for k, v in library.items() if v.zettel}
 		return key, library
 
-	def split_section_lib(self, section_library, library):
+	def split_section_lib(self, section_dict):
 		'''Extract zettels from section library into main library'''
-		for key, index_zettel in section_library.items():
+		library = dict()
+		for key, index_zettel in section_dict.items():
+			# print('index_zettel: ', index_zettel.zettel)
 			zettel_library = {} # Prevent RuntimeError: dictionary changed size during iteration
 			contents = index_zettel.zettel
-			field_type = 'zettel'
+			field_type, parent = 'zettel', index_zettel.parent
 			search_results = self.find_sections_in_txt(contents, field_type = field_type)
-			fields_list = self.sort_search_results_to_list(contents, search_results)
-			parent = index_zettel.parent
-			key, zettel_library = self.store_list_to_lib(fields_list, field_type, parent)
+			results_generator = zkn.sort_search_results_to_tuple(contents, search_results)
+			
+		for fields_tuple, next_field_name in results_generator:
+			print('fields_tuple: ', fields_tuple)
+			key, zettel_library = self.store_tuple_to_lib(fields_tuple, field_type)
 			library.update(zettel_library)
-			# zettel_library = self.split_txt_to_dict(sub_section['zettel'],
-			# 	zettel_library , parent = key, field_type = 'zettel')
-			# library.update({key: sub_section})
-			# library[key]['zettel'] = self.generate_index_text(zettel_library)
-			# library.update(zettel_library)
+			print(len(zettel_library))
 
 		# clear empty entries
 		library = {k: v for k, v in library.items() if v.zettel}
@@ -419,18 +414,18 @@ if __name__ == '__main__':
 	contents = zkn.import_txt_to_str(file_path = file_path)
 	field_type = 'section'
 	search_results = zkn.find_sections_in_txt(contents, field_type = field_type)
-	fields_list = zkn.sort_search_results_to_list(contents, search_results)
-	# print([field_name for field_name, field_contents in fields_list])
-	key, zkn.library = zkn.store_list_to_lib(fields_list, field_type)
-	zettel_library = zkn.split_section_lib(zkn.library, {})
+	results = zkn.sort_search_results_to_tuple(contents, search_results)
+	fields_tuple, next_field_name = next(results)
+	key, zkn.library = zkn.store_tuple_to_lib(fields_tuple, field_type)
+	zkn.display(20)
+
+	zettel_library = zkn.split_section_lib(zkn.library)
 	zkn.library.update(zettel_library)
 	zkn.display(20)
 	print(len(zkn.library))
-	# key, zkn.library = zkn.sort_search_results_to_dict(
-	# contents, {}, search_results, field_type, parent)
-	# zkn.library = zkn.split_str_text_to_lib(contents = contents)
-	# [print(zettel) for zettel in zkn.library.values()]
-	path_root, extension = controller.split_path(file_path)
+	# path_root, extension = controller.split_path(file_path)
+	
+
 	# print(path_root)
 	# print(zkn.extract_filepath(path_root))
 	# zkn.export_zk_csv(zkn.extract_filepath(filepath), zkn.library)
