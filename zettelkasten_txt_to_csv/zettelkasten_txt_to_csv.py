@@ -209,7 +209,7 @@ class Zettelkasten(Zettel):
 
 		return fields_out_list
 
-	def store_list_to_lib(self, fields_list, field_type, key = 0):
+	def store_list_to_lib(self, fields_list, field_type, parent = 0):
 		'''Store zettelkasten contents or sections into fields in library'''
 		library = dict()
 
@@ -219,18 +219,15 @@ class Zettelkasten(Zettel):
 			if 'section' in field_type:
 				parent = self.gsheets_timestamp()
 				key, library = self.store_subsections(library, parent, field_name, field_contents)
+			elif not field_name or not field_contents: pass
 			elif 'zettel' in field_type and 'index' in field_name:
 			# create new dictionary entry at each instance of 'index'
 				key = self.gsheets_timestamp() if len(field_contents) < 5 else field_contents
 				if key in library.keys(): print('Error: Duplicate key when assigning index')
-				else: library[key] = Zettel()
+				else: library[key] = Zettel(); library[key].parent = parent
 				if self.diagnostics: print("Index assigned: ", key, library[key])
-				
 			elif 'zettel' in field_type and key:
-				parent = 0
-				library[key].store_zettel(library, key, parent, field_name, field_contents)
-
-			elif not field_name: pass
+				library[key].store_zettel_field(library, key, parent, field_name, field_contents)
 			else: print(f'Error: Field type {field_type} not recognised')
 		
 		# clear empty entries
@@ -238,14 +235,15 @@ class Zettelkasten(Zettel):
 		return key, library
 
 	def split_section_lib(self, section_library, library):
-		'''Extract zettels from section dictionary into dictionary'''
+		'''Extract zettels from section library into main library'''
 		for key, index_zettel in section_library.items():
 			zettel_library = {} # Prevent RuntimeError: dictionary changed size during iteration
 			contents = index_zettel.zettel
 			field_type = 'zettel'
 			search_results = self.find_sections_in_txt(contents, field_type = field_type)
 			fields_list = self.sort_search_results_to_list(contents, search_results)
-			key, zettel_library = self.store_list_to_lib(fields_list, field_type)
+			parent = index_zettel.parent
+			key, zettel_library = self.store_list_to_lib(fields_list, field_type, parent)
 			library.update(zettel_library)
 			# zettel_library = self.split_txt_to_dict(sub_section['zettel'],
 			# 	zettel_library , parent = key, field_type = 'zettel')
@@ -291,6 +289,7 @@ class Zettelkasten(Zettel):
 
 		# # Extract subsections from text into dictionary
 		# section_library = {}
+
 		# section_library = self.split_txt_to_dict(contents, section_library, parent = self.master_key, field_type = 'section')
 		# if self.diagnostics: print(len(section_library), " Sections extracted \n", section_library)
 		
@@ -422,15 +421,16 @@ if __name__ == '__main__':
 	search_results = zkn.find_sections_in_txt(contents, field_type = field_type)
 	fields_list = zkn.sort_search_results_to_list(contents, search_results)
 	# print([field_name for field_name, field_contents in fields_list])
-	key, section_library = zkn.store_list_to_lib(fields_list, field_type)
-	zkn.library = zkn.split_section_lib(section_library, {})
-	zkn.display(5, -6)
+	key, zkn.library = zkn.store_list_to_lib(fields_list, field_type)
+	zettel_library = zkn.split_section_lib(zkn.library, {})
+	zkn.library.update(zettel_library)
+	zkn.display(20)
 	print(len(zkn.library))
 	# key, zkn.library = zkn.sort_search_results_to_dict(
 	# contents, {}, search_results, field_type, parent)
 	# zkn.library = zkn.split_str_text_to_lib(contents = contents)
 	# [print(zettel) for zettel in zkn.library.values()]
-	# path_root, extension = controller.split_path(file_path)
+	path_root, extension = controller.split_path(file_path)
 	# print(path_root)
 	# print(zkn.extract_filepath(path_root))
 	# zkn.export_zk_csv(zkn.extract_filepath(filepath), zkn.library)
