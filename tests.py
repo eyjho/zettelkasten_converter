@@ -81,18 +81,29 @@ class TestZkn_TXT(unittest.TestCase):
 
 	def setUp(self):
 		'''Run before every subsequent test'''
-		global zkn
+		global zkn, contents
 		zkn = Zettelkasten(diagnostics = False)
 		file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
 		contents = zkn.import_txt_to_str(file_path = file_path)
 		zkn.library = zkn.split_str_text_to_lib(contents = contents)
-		self.library_length = 73
+		self.library_length = 66
+		self.section_num = 7
 
 	def test_import_txt_length(self):
 		'''Length of imported txt library should match row count'''
 		result = len(zkn.library)
 		correct_answer = self.library_length
+		self.assertEqual(result, correct_answer)
+
+	def test_import_section_length(self):
+		'''Length of imported txt library should match row count'''
+		field_type = 'section'
+		search_results = zkn.find_sections_in_txt(contents, field_type = field_type)
+		fields_list = zkn.sort_search_results_to_list(contents, search_results)
+		key, zkn.library = zkn.store_list_to_lib(fields_list, field_type)
+		result = len(zkn.library)
+		correct_answer = self.section_num
 		self.assertEqual(result, correct_answer)
 
 	def test_duplicates(self):

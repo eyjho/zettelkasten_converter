@@ -72,7 +72,13 @@ class Zettel:
 			return text[0].upper() + text[1:] if capitals else text
 		else: return text
 
-	def store_fields(self, library = {}, key = 0, parent = 0, field_name = '', field_contents = ''):
+	def store_index_zettel(self, library, parent, field_name, field_contents):
+		'''Store previously extracted section contents into zettel'''
+		self.parent = parent
+		self.title = field_name.lower()
+		self.zettel = field_contents
+
+	def store_zettel(self, library = {}, key = 0, parent = 0, field_name = '', field_contents = ''):
 		'''Store previously extracted zettelkasten into dictionary
 		library: to which fields will be added
 		key: index of zettel to which field belongs
@@ -81,7 +87,7 @@ class Zettel:
 		field_contents: string body of field
 		'''
 		field_name = field_name.lower()
-		# print('store_fields: ', f ield_name, field_contents)
+		print('store_zettel: ', field_name)#, field_contents)
 
 		if 'title' in field_name:
 			self.title = self.clean_text(field_contents, True)
@@ -157,16 +163,15 @@ class Zettelkasten(Zettel):
 		'''Extract subsections as search results from text using regex'''
 		if 'section' in field_type:
 			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
-			parent = self.gsheets_timestamp()
 		elif 'zettel' in field_type:
 			pattern = r'\[\w{1,10}\]'
-			parent = self.gsheets_timestamp() # temp
+			# parent = self.gsheets_timestamp() # temp
 		else: print('Field type error'); return None
 
 		search_results = re.finditer(pattern, contents)
-		return search_results, parent
+		return search_results
 
-	def sort_search_results_to_tuple(self, contents, search_results):
+	def sort_search_results_to_list(self, contents, search_results):
 		'''Iterate results and find each field marker to sort into tuple'''
 
 		key, end_index, field_name, field_contents = 0, 0, '', ''
@@ -201,6 +206,26 @@ class Zettelkasten(Zettel):
 
 		return fields_out_list
 
+	def store_list_to_lib(self, fields_list, field_type):
+		'''Store zettelkasten contents or sections into fields in library'''
+		library = dict()
+
+		for field_name, field_contents in fields_list:
+		# store in dictionary according to section or zettel
+			if 'section' in field_type:
+				parent = self.gsheets_timestamp()
+				key, library = self.store_subsections(library, parent, field_name, field_contents)
+			elif 'zettel' in field_type and 'index' in field_name:
+			# create new dictionary entry at each instance of 'index'
+				key = self.gsheets_timestamp() if len(field_contents) < 5 else field_contents
+				if key in library.keys(): print('Error: Duplicate key when assigning index')
+				else: library[key] = Zettel()
+				if self.diagnostics: print("Index assigned: ", key, library[key])
+				
+			elif 'zettel' in field_type: library[key].store_zettel(library, key, parent, field_name, field_contents)
+
+			else: print('Error: Field type (zettel/section) not identified')
+		return key, library
 
 	def split_txt_to_dict(self, text, library = {}, parent = '', field_type = ''):
 		'''Extract subsections from text into dictionary using regex
@@ -309,7 +334,7 @@ class Zettelkasten(Zettel):
 				else: library[key] = Zettel()
 				if self.diagnostics: print("Index assigned: ", key, library[key])
 			
-			else: library[key].store_fields(library, key, parent, field_name, field_contents)
+			else: library[key].store_zettel(library, key, parent, field_name, field_contents)
 
 		else: print('Error: Field type (zettel/section) not identified')
 		return key, library
@@ -318,9 +343,11 @@ class Zettelkasten(Zettel):
 		'''Store chunk of text in dictionary with section heading as title and section as zettel'''
 		key = self.gsheets_timestamp()
 		if key in library.keys(): print('Error: Duplicate key while storing subsection')
-		library[key] = dict(parent = parent, title = field_name,
-			zettel = field_contents, reference = '', keyword = '')
-
+		# library[key] = dict(parent = parent, title = field_name,
+			# zettel = field_contents, reference = '', keyword = '')
+		else:
+			library[key] = Zettel()
+			library[key].store_index_zettel(library, parent, field_name, field_contents)
 		return key, library
 
 	def gsheets_timestamp(self):
@@ -360,13 +387,15 @@ if __name__ == '__main__':
 	contents = ''
 	contents = zkn.import_txt_to_str(file_path = file_path)
 	field_type = 'section'
-	search_results, parent = zkn.find_sections_in_txt(contents, field_type = field_type)
-	fields_tuple = zkn.sort_search_results_to_tuple(contents, search_results)
-	print([field_name for field_name, field_contents in fields_tuple])
+	search_results = zkn.find_sections_in_txt(contents, field_type = field_type)
+	fields_list = zkn.sort_search_results_to_list(contents, search_results)
+	print([field_name for field_name, field_contents in fields_list])
+	
+	key, zkn.library = zkn.store_list_to_lib(fields_list, field_type)
 	# key, zkn.library = zkn.sort_search_results_to_dict(
 	# contents, {}, search_results, field_type, parent)
 	# zkn.library = zkn.split_str_text_to_lib(contents = contents)
-	# print(zkn.library.keys())
+	print(zkn.library.keys())
 	# path_root, extension = controller.split_path(file_path)
 	# print(path_root)
 	# print(zkn.extract_filepath(path_root))
