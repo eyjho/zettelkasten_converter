@@ -224,7 +224,7 @@ class Zettelkasten(Zettel):
 		elif not field_name: pass
 		elif 'zettel' in field_type and 'index' in field_name:
 		# create new dictionary entry at each instance of 'index'
-			key = self.gsheets_timestamp() if len(field_contents) < 5 else field_contents
+			key = self.gsheets_timestamp() if len(field_contents) < 10 else field_contents
 			if key in library.keys(): print('Error: Duplicate key when assigning index')
 			else: library[key] = Zettel(); library[key].parent = parent
 			if self.diagnostics: print("Index assigned: ", key, library[key])
