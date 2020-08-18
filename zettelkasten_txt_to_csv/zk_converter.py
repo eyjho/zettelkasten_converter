@@ -276,24 +276,30 @@ class Zettelkasten(Zettel):
 		library = {k: v for k, v in library.items() if v.zettel}
 		return library
 
-	def export_zk_txt(self, file_path, library):
+	def export_zk_txt(self, file_path, library = None):
 		'''Write dictionary from memory to txt'''
-		txt_output = open(file_path + '_' + 
-			str(self.gsheets_timestamp(self.master_key)) + '.txt','w', newline='')
+		if library == None: library = self.library
+		out_file_path = file_path + '_' +\
+			str(self.gsheets_timestamp(self.master_key)) + '.txt'
+		txt_output = open(out_file_path,'w', newline='')
 		for key, zettel in library.items():
 			txt_output.write(f"[index] {key} {zettel}\n\n")
 		txt_output.close()
+		return out_file_path
 
-	def export_zk_csv(self, file_path, library):
+	def export_zk_csv(self, file_path, library = None):
 		'''Write dictionary from memory to csv'''
-		csv_output = open(file_path + '_' + str(self.master_key) + '.csv','w', newline='')
+		if library == None: library = self.library
+		out_file_path = file_path + '_' +\
+			str(self.gsheets_timestamp(self.master_key)) + '.csv'
+		csv_output = open(out_file_path,'w', newline='')
 		csv_writer = csv.writer(csv_output , delimiter=';')
 
 		for key, dictionary in library.items():
 			csv_writer.writerow([key, dictionary['parent'], dictionary['title'], dictionary['zettel'], 
 				dictionary['reference'], dictionary['keyword']])
 		csv_output.close()
-		return True
+		return out_file_path
 
 if __name__ == '__main__':
 	zkn = Zettelkasten(diagnostics = False)
@@ -310,5 +316,5 @@ if __name__ == '__main__':
 	zkn.display(20)
 	print(len(zkn.library))
 
-	# path_root, extension = controller.split_path(file_path)
-	# zkn.export_zk_txt(path_root, zkn.library)
+	path_root, extension = controller.split_path(file_path)
+	zkn.export_zk_txt(path_root, zkn.library)
