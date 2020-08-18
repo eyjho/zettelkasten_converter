@@ -56,10 +56,10 @@ class TestZkn_CSV(unittest.TestCase):
 		zkn = Zettelkasten(diagnostics = False)
 		file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
-		zkn.library = zkn.import_csv_zk(file_path = file_path)
+		zkn.library = zkn.run_csv(file_path = file_path)
 		self.library_length = 73
 
-	def test_import_csv_length(self):
+	def test_run_csv_length(self):
 		'''Length of imported txt library should match row count'''
 		result = len(zkn.library)
 		correct_answer = self.library_length
@@ -81,29 +81,26 @@ class TestZkn_TXT(unittest.TestCase):
 
 	def setUp(self):
 		'''Run before every subsequent test'''
-		global zkn, contents
+		global zkn, file_path
 		zkn = Zettelkasten(diagnostics = False)
 		file_path = 'C:/Users/Eugene/Documents\
 /GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
-		contents = zkn.import_txt_to_str(file_path = file_path)
-		parent = zkn.gsheets_timestamp()
-		zkn.library = zkn.split_section_lib(contents, parent)
-		self.library_length = 66
+		self.library_length = 73
 		self.section_num = 7
 
-	def test_import_txt_length(self):
+	def test_run_txt_length(self):
 		'''Length of imported txt library should match row count'''
+		zkn.library = zkn.run_txt(file_path)
 		result = len(zkn.library)
 		correct_answer = self.library_length
 		self.assertEqual(result, correct_answer)
 
 	def test_import_section_length(self):
 		'''Length of imported txt library should match row count'''
-		field_type = 'section'
-		search_results = zkn.find_sections_in_txt(contents, field_type = field_type)
-		fields_list = zkn.sort_search_results_to_list(contents, search_results)
-		key, zkn.library = zkn.store_list_to_lib(fields_list, field_type)
-		result = len(zkn.library)
+		contents = zkn.import_txt_to_str(file_path = file_path)
+		parent, field_type = zkn.gsheets_timestamp(), 'section'
+		section_zettel_generator = zkn.split_generator(contents, field_type, parent)
+		result = sum([1 for _ in section_zettel_generator])
 		correct_answer = self.section_num
 		self.assertEqual(result, correct_answer)
 
