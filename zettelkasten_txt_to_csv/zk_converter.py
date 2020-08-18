@@ -167,7 +167,8 @@ class Zettelkasten(Zettel):
 	def find_sections_in_txt(self, contents, library = {}, field_type = ''):
 		'''Extract subsections as search results from text using regex'''
 		if 'section' in field_type:
-			pattern = r'\n{2,3}[\w ]{1,100}\n{2,3}'
+			pattern = r'\n{1,5}[\w ,]{2,100}\n{2,5}'
+			# whitespace necessary in [\w ] to allow spaces in header
 		elif 'zettel' in field_type:
 			pattern = r'\[\w{1,10}\]'
 		else: print('Field type error'); return None
@@ -186,7 +187,8 @@ class Zettelkasten(Zettel):
 
 			# for sections, capture set of text before first subtitle
 			if not end_index:
-				start_index, end_index, field_name = 0, 0, ''
+				start_index, end_index = 0, 0
+				field_name = ''#self.clean_text(result.group(), False)
 
 			# extract, clean, yield field contents
 			next_start_index = result.start()
@@ -214,7 +216,6 @@ class Zettelkasten(Zettel):
 	def store_tuple_to_lib(self, fields_tuple, field_type, library = None, key = 0, parent = 0):
 		'''Store zettelkasten contents or sections into fields in library'''
 		if library == None: library = dict()
-		# print('Fields_tuple: ', fields_tuple)
 
 		field_name, field_contents = fields_tuple
 		# store in dictionary according to section or zettel
@@ -240,10 +241,11 @@ class Zettelkasten(Zettel):
 		if key in library.keys(): print('Error: Duplicate key while storing subsection')
 		# library[key] = dict(parent = parent, title = field_name,
 			# zettel = field_contents, reference = '', keyword = '')
-		else:
+		elif (field_name or field_contents): # ignore empty sections
 			library[key] = Zettel()
 			library[key].store_index_zettel(library, self.gsheets_timestamp(self.master_key),
 				field_name, field_contents)
+		else: print(f"Section omitted: field_name: {field_name} field_contents: {field_contents}")
 		return key, library
 
 	def run_txt(self, file_path):
@@ -305,16 +307,23 @@ if __name__ == '__main__':
 	zkn = Zettelkasten(diagnostics = False)
 	controller = Controller()
 	# file_path = controller.tkgui_getfile()
-	file_path = 'C:/Users/Eugene/Documents\
-/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
+	# print(file_path)
+	file_path = 'C:/Users/Eugene/Documents/GitHub/zettelkasten_txt_to_csv\
+/data/Learning to Learn zettelkasten - Oakley - Coursera.txt'
+	path_root, extension = controller.split_path(file_path)
+# 	file_path = 'C:/Users/Eugene/Documents\
+# /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
 	
 	# csv_odict_gen = zkn.import_csv_odict_gen(file_path = file_path)
 	# for csv_odict in csv_odict_gen:
-	# 	zkn.library.update(zkn.dict_to_zk(csv_odict))
-	# zkn.library = zkn.run_txt(file_path)
-	zkn.library = zkn.run_csv(file_path)
-	zkn.display(20)
+	if extension in '.csv':
+		zkn.library = zkn.run_csv(file_path)
+	elif extension in '.txt':
+		zkn.library = zkn.run_txt(file_path)
+	else: print(f'Extension not recognised: {extension}')
+	# zkn.library = zkn.run_csv(file_path)
+	zkn.display(10)
 	print(len(zkn.library))
 
-	path_root, extension = controller.split_path(file_path)
-	zkn.export_zk_txt(path_root, zkn.library)
+	# 
+	# zkn.export_zk_txt(path_root, zkn.library)

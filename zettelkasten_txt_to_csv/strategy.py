@@ -62,6 +62,7 @@ class Context():
 
 		print("Context: Sorting data using the strategy (not sure how it'll do it)")
 		result = self._strategy.do_algorithm(path_root)
+		print(f"New zettels: {len(zkn.library)}")
 		print(f"Output file: {result}")
 
 		# ...
@@ -107,6 +108,6 @@ if __name__ == "__main__":
 	context.identify_import_file(file_path)
 	print()
 
-	print("Client: Strategy is set to export txt.")
-	context.strategy = import_txt()
-	context.identify_import_file(file_path)
+	# print("Client: Strategy is set to export txt.")
+	# context.strategy = import_txt()
+	# context.identify_import_file(file_path)
