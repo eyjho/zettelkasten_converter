@@ -7,7 +7,7 @@ https://realpython.com/python-testing/#writing-your-first-test
 '''
 
 import unittest
-from zettelkasten_txt_to_csv.zettelkasten_txt_to_csv import Zettelkasten, Controller
+from zettelkasten_txt_to_csv.zk_converter import Zettelkasten, Controller
 
 class TestZettelkasten(unittest.TestCase):
 	'''Unit test for key functions of zettelkasten converter'''

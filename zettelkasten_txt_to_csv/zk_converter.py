@@ -123,6 +123,27 @@ class Zettelkasten(Zettel):
 		self.timestamp += 0.00001
 		return '{:.6f}'.format(timestamp)
 
+	def import_csv_zk(self, library = None, file_path = ''):
+		'''Read csv file and save into memory'''
+		# clean out library and check file type
+		if library == None: library = dict()
+		if not file_path.lower().endswith('.csv'):
+			print('Error: Wrong filetype in importing .csv')
+			return library
+
+		with open(file_path, 'r', encoding = 'utf-8') as my_file:
+			contents = csv.DictReader(my_file, delimiter=',')
+			# row contains zettel dictionary
+			for row in contents:
+
+				text = ' '.join([f"[{field_name.lower()}] {contents}" \
+					for field_name, contents in row.items()])
+				if self.diagnostics: print("Imported dict: ", text)
+				library = self.split_txt_to_dict(text, library,
+					parent = '', field_type = 'zettel')
+			my_file.close()
+		return library
+
 	def import_txt_to_str(self, file_path = ''):
 		'''Read txt file and return library'''
 		# check file type
@@ -219,14 +240,6 @@ class Zettelkasten(Zettel):
 				field_name, field_contents)
 		return key, library
 
-	def export_zk_txt(self, file_path, library):
-		'''Write dictionary from memory to txt'''
-		txt_output = open(file_path + '_' + 
-			str(self.gsheets_timestamp(self.master_key)) + '.txt','w', newline='')
-		for key, zettel in library.items():
-			txt_output.write(f"[index] {key} {zettel}\n\n")
-		txt_output.close()
-
 	def run_txt(self, file_path):
 		'''Full procedure to import zettelkasten using file_path from txt 
 		incl section headers to zettels'''
@@ -245,6 +258,25 @@ class Zettelkasten(Zettel):
 		# clear empty zettels
 		library = {k: v for k, v in library.items() if v.zettel}
 		return library
+
+	def export_zk_txt(self, file_path, library):
+		'''Write dictionary from memory to txt'''
+		txt_output = open(file_path + '_' + 
+			str(self.gsheets_timestamp(self.master_key)) + '.txt','w', newline='')
+		for key, zettel in library.items():
+			txt_output.write(f"[index] {key} {zettel}\n\n")
+		txt_output.close()
+
+	def export_zk_csv(self, file_path, library):
+		'''Write dictionary from memory to csv'''
+		csv_output = open(file_path + '_' + str(self.master_key) + '.csv','w', newline='')
+		csv_writer = csv.writer(csv_output , delimiter=';')
+
+		for key, dictionary in library.items():
+			csv_writer.writerow([key, dictionary['parent'], dictionary['title'], dictionary['zettel'], 
+				dictionary['reference'], dictionary['keyword']])
+		csv_output.close()
+		return True
 
 if __name__ == '__main__':
 	zkn = Zettelkasten(diagnostics = False)

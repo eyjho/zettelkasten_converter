@@ -8,7 +8,7 @@ https://www.internalpointers.com/post/run-painless-test-suites-python-unittest
 
 import unittest
 import tests
-from zettelkasten_txt_to_csv.zettelkasten_txt_to_csv import Zettelkasten
+from zettelkasten_txt_to_csv.zk_converter import Zettelkasten
 
 def suite():
 	suite = unittest.TestSuite()
