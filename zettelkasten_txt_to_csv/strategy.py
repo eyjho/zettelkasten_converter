@@ -14,7 +14,7 @@ possible because in Python functions are first class objects.
 
 from __future__ import annotations
 from typing import List, Dict
-from zettelkasten_txt_to_csv import Zettelkasten
+from zk_converter import Zettelkasten, Controller
 
 class Context():
 	"""
@@ -47,17 +47,22 @@ class Context():
 
 		self._strategy = strategy
 
-	def do_some_business_logic(self) -> None:
+	def identify_import_file(self, file_path) -> None:
 		"""
 		The Context delegates some work to the Strategy object instead of
 		implementing multiple versions of the algorithm on its own.
 		"""
+		path_root, extension = controller.split_path(file_path)
 
-		# ...
+		if extension in '.csv':
+			zkn.library = zkn.run_csv(file_path)
+		elif extension in '.txt':
+			zkn.library = zkn.run_txt(file_path)
+		else: print(f'Extension not recognised: {extension}')
 
 		print("Context: Sorting data using the strategy (not sure how it'll do it)")
-		result = self._strategy.do_algorithm({})
-		print(len(result))
+		result = self._strategy.do_algorithm(path_root)
+		print(f"Output file: {result}")
 
 		# ...
 
@@ -69,8 +74,8 @@ class Strategy(Zettelkasten):
 	"""
 
 	# @abstractmethod
-	def do_algorithm(self, data: List):
-		pass
+	def do_algorithm(self, path_root):
+		print(f'File extension not defined: {path_root}')
 
 """
 Concrete Strategies implement the algorithm while following the base Strategy
@@ -78,25 +83,30 @@ interface. The interface makes them interchangeable in the Context.
 """
 
 class import_csv(Strategy):
-	def do_algorithm(self, data: Dict) -> Dict:
-		file_path = 'C:/Users/Eugene/Documents/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
-		return self.import_csv_zk(file_path = file_path)
+	def do_algorithm(self, path_root) -> Str:
+		print('Exporting csv')
+		return zkn.export_zk_csv(file_path = path_root)
 
 class import_txt(Strategy):
-	def do_algorithm(self, data: List) -> List:
-		file_path = 'C:/Users/Eugene/Documents/GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
-		return self.import_txt_zk(file_path = file_path)
+	def do_algorithm(self, path_root) -> Str:
+		print('Exporting txt')
+		return zkn.export_zk_txt(file_path = path_root)
 
 
 if __name__ == "__main__":
 	# The client code picks a concrete strategy and passes it to the context.
 	# The client should be aware of the differences between strategies to make the right choice.
 
+	global zkn, controller, file_path
+	zkn = Zettelkasten(diagnostics = False)
+	controller = Controller()
+	file_path = controller.tkgui_getfile()
+
 	context = Context(import_csv())
-	print("Client: Strategy is set to import csv.")
-	context.do_some_business_logic()
+	print("Client: Strategy is set to export csv.")
+	context.identify_import_file(file_path)
 	print()
 
-	print("Client: Strategy is set to import txt.")
+	print("Client: Strategy is set to export txt.")
 	context.strategy = import_txt()
-	context.do_some_business_logic()
+	context.identify_import_file(file_path)
