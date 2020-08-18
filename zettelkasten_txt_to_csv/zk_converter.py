@@ -123,25 +123,31 @@ class Zettelkasten(Zettel):
 		self.timestamp += 0.00001
 		return '{:.6f}'.format(timestamp)
 
-	def import_csv_zk(self, library = None, file_path = ''):
-		'''Read csv file and save into memory'''
-		# clean out library and check file type
-		if library == None: library = dict()
+	def import_csv_odict_gen(self, file_path = ''):
+		'''Read csv file and row contents as odict generator'''
+
+		# check file type
 		if not file_path.lower().endswith('.csv'):
 			print('Error: Wrong filetype in importing .csv')
-			return library
+			return dict()
 
 		with open(file_path, 'r', encoding = 'utf-8') as my_file:
 			contents = csv.DictReader(my_file, delimiter=',')
-			# row contains zettel dictionary
-			for row in contents:
+			for row_odict in contents: yield row_odict
+		# return csv_dict
 
-				text = ' '.join([f"[{field_name.lower()}] {contents}" \
-					for field_name, contents in row.items()])
-				if self.diagnostics: print("Imported dict: ", text)
-				library = self.split_txt_to_dict(text, library,
-					parent = '', field_type = 'zettel')
-			my_file.close()
+	def dict_to_zk(self, csv_dict, library = None):
+		'''Store csv as dict into library'''
+		# clean out library
+		if library == None: library = dict()
+		split_lib, key = dict(), 0
+		# row contains one zettel
+		for field_name, field_contents in csv_dict.items():
+			fields_tuple = field_name.lower(), field_contents
+			key, split_lib = self.store_tuple_to_lib(fields_tuple, 
+				'zettel', split_lib, key)
+			# ignore empty dictionary outputs
+			if split_lib: library.update(split_lib)
 		return library
 
 	def import_txt_to_str(self, file_path = ''):
@@ -259,6 +265,17 @@ class Zettelkasten(Zettel):
 		library = {k: v for k, v in library.items() if v.zettel}
 		return library
 
+	def run_csv(self, file_path):
+		'''Full procedure to import zettelkasten using file_path from csv'''
+		library = dict()
+		csv_odict_gen = self.import_csv_odict_gen(file_path = file_path)
+		for csv_odict in csv_odict_gen:
+			library.update(self.dict_to_zk(csv_odict))
+		
+		# clear empty zettels
+		library = {k: v for k, v in library.items() if v.zettel}
+		return library
+
 	def export_zk_txt(self, file_path, library):
 		'''Write dictionary from memory to txt'''
 		txt_output = open(file_path + '_' + 
@@ -283,10 +300,15 @@ if __name__ == '__main__':
 	controller = Controller()
 	# file_path = controller.tkgui_getfile()
 	file_path = 'C:/Users/Eugene/Documents\
-/GitHub/zettelkasten_txt_to_csv/data/00 Gardening zettlelkasten.txt'
-	zkn.library = zkn.run_txt(file_path)
-	zkn.display(-1)
+/GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
+	
+	# csv_odict_gen = zkn.import_csv_odict_gen(file_path = file_path)
+	# for csv_odict in csv_odict_gen:
+	# 	zkn.library.update(zkn.dict_to_zk(csv_odict))
+	# zkn.library = zkn.run_txt(file_path)
+	zkn.library = zkn.run_csv(file_path)
+	zkn.display(20)
 	print(len(zkn.library))
 
-	path_root, extension = controller.split_path(file_path)
-	zkn.export_zk_txt(path_root, zkn.library)
+	# path_root, extension = controller.split_path(file_path)
+	# zkn.export_zk_txt(path_root, zkn.library)
