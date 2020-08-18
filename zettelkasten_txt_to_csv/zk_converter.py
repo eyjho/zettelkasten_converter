@@ -295,9 +295,9 @@ class Zettelkasten(Zettel):
 		csv_output = open(out_file_path,'w', newline='')
 		csv_writer = csv.writer(csv_output , delimiter=';')
 
-		for key, dictionary in library.items():
-			csv_writer.writerow([key, dictionary['parent'], dictionary['title'], dictionary['zettel'], 
-				dictionary['reference'], dictionary['keyword']])
+		for key, zettel in library.items():
+			csv_writer.writerow([key, zettel.parent, zettel.title, zettel.zettel, 
+				zettel.reference, zettel.keyword])
 		csv_output.close()
 		return out_file_path
 
