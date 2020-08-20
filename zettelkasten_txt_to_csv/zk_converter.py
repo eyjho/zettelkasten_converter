@@ -102,7 +102,8 @@ class Zettel:
 		elif 'parent' in field_name:
 			self.parent = field_contents
 
-		else: print(f'Error: Field {field_name} not identified')
+		else: print(f'Error: Field {field_name} not identified \n'
+			f'Field contents: {field_contents}')
 
 class Zettelkasten(Zettel):
 	'''Convert zettelkasten between txt and csv formats'''
@@ -238,7 +239,8 @@ class Zettelkasten(Zettel):
 			if self.diagnostics: print("Index assigned: ", key, library[key])
 		elif 'zettel' in field_type and key:
 			library[key].store_zettel_field(library, key, parent, field_name, field_contents)
-		else: print(f'Error: Field type {field_type}, field name {field_name} not recognised')
+		else: print(f'Error: Field type {field_type}, Field name: {field_name} not recognised', '\n',
+			f"Field contents: {field_contents}, Key: {key}")
 		
 		return key, library
 
@@ -311,10 +313,10 @@ class Zettelkasten(Zettel):
 if __name__ == '__main__':
 	zkn = Zettelkasten(diagnostics = False)
 	controller = Controller()
-	# file_path = controller.tkgui_getfile()
+	file_path = controller.tkgui_getfile()
 	# print(file_path)
-	file_path = 'C:/Users/Eugene/Documents/GitHub/zettelkasten_txt_to_csv\
-/data/Learning to Learn zettelkasten - Oakley - Coursera.txt'
+# 	file_path = 'C:/Users/Eugene/Documents/GitHub/zettelkasten_txt_to_csv\
+# /data/Learning to Learn zettelkasten - Oakley - Coursera.txt'
 	path_root, extension = controller.split_path(file_path)
 # 	file_path = 'C:/Users/Eugene/Documents\
 # /GitHub/zettelkasten_txt_to_csv/data/Zettelkasten v0_2.csv'
@@ -331,4 +333,4 @@ if __name__ == '__main__':
 	print(len(zkn.library))
 
 	# 
-	zkn.export_zk_txt(path_root, zkn.library)
+	# zkn.export_zk_txt(path_root, zkn.library)
