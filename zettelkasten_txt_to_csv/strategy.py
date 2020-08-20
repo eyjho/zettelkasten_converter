@@ -102,12 +102,13 @@ if __name__ == "__main__":
 	zkn = Zettelkasten(diagnostics = False)
 	controller = Controller()
 	file_path = controller.tkgui_getfile()
-
 	context = Context(import_csv())
-	print("Client: Strategy is set to export csv.")
-	context.identify_import_file(file_path)
-	print()
 
-	# print("Client: Strategy is set to export txt.")
-	# context.strategy = import_txt()
+	# context.strategy = import_csv()
+	# print("Client: Strategy is set to export csv.")
 	# context.identify_import_file(file_path)
+	# print()
+
+	print("Client: Strategy is set to export txt.")
+	context.strategy = import_txt()
+	context.identify_import_file(file_path)
