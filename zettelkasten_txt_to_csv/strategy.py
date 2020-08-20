@@ -83,12 +83,12 @@ Concrete Strategies implement the algorithm while following the base Strategy
 interface. The interface makes them interchangeable in the Context.
 """
 
-class import_csv(Strategy):
+class export_csv(Strategy):
 	def do_algorithm(self, path_root) -> Str:
 		print('Exporting csv')
 		return zkn.export_zk_csv(file_path = path_root)
 
-class import_txt(Strategy):
+class export_txt(Strategy):
 	def do_algorithm(self, path_root) -> Str:
 		print('Exporting txt')
 		return zkn.export_zk_txt(file_path = path_root)
@@ -102,13 +102,13 @@ if __name__ == "__main__":
 	zkn = Zettelkasten(diagnostics = False)
 	controller = Controller()
 	file_path = controller.tkgui_getfile()
-	context = Context(import_csv())
+	context = Context(export_csv())
 
-	# context.strategy = import_csv()
+	# context.strategy = export_csv()
 	# print("Client: Strategy is set to export csv.")
 	# context.identify_import_file(file_path)
 	# print()
 
 	print("Client: Strategy is set to export txt.")
-	context.strategy = import_txt()
+	context.strategy = export_txt()
 	context.identify_import_file(file_path)
