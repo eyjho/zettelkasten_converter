@@ -44,11 +44,15 @@ class Zettel:
 		self.zettel = ''
 		self.reference = ''
 		self.keyword = ''
-		self.type = ''
+		self.type = 'zettel'
 
 	def __str__(self):
-		return f"[parent] {self.parent} [title] {self.title}\
-				\n[zettel] {self.zettel} \n[reference] {self.reference} \n[keyword] {self.keyword}"
+		if 'section' in self.type:
+			return f"[parent] {self.parent} [title] {self.title}"
+		elif 'zettel' in self.type:
+			return f"[parent] {self.parent} [title] {self.title}\
+\n[zettel] {self.zettel} \n[reference] {self.reference} \n[keyword] {self.keyword}"
+		else: return print(f"Zettel.__str__ Zettel type ({self.type}) not recognised")
 
 	def clean_text(self, text, capitals = False):
 		'''Scrub string of double spaces, colons, and capitalize'''
@@ -144,6 +148,7 @@ class Zettelkasten(Zettel):
 		# row contains one zettel
 		for field_name, field_contents in csv_dict.items():
 			fields_tuple = field_name.lower(), field_contents
+			# print("fields_tuple: ", fields_tuple)
 			key, split_lib = self.store_tuple_to_lib(fields_tuple, 
 				'zettel', split_lib, key)
 			# ignore empty dictionary outputs
@@ -167,12 +172,14 @@ class Zettelkasten(Zettel):
 	def find_sections_in_txt(self, contents, library = {}, field_type = ''):
 		'''Extract subsections as search results from text using regex'''
 		if 'section' in field_type:
-			pattern = r'\n{1,5}[\w ,]{2,100}\n{2,5}'
+			pattern = r'\n{1}[\w ,]{2,100}\n{1}'
 			# whitespace necessary in [\w ] to allow spaces in header
 		elif 'zettel' in field_type:
 			pattern = r'\[\w{1,10}\]'
 		else: print('Field type error'); return None
 
+		# print(['',contents[11000:11500]])
+		# print(len(re.findall(pattern, contents)))
 		search_results = re.finditer(pattern, contents)
 		return search_results
 
@@ -231,7 +238,7 @@ class Zettelkasten(Zettel):
 			if self.diagnostics: print("Index assigned: ", key, library[key])
 		elif 'zettel' in field_type and key:
 			library[key].store_zettel_field(library, key, parent, field_name, field_contents)
-		else: print(f'Error: Field type {field_type} not recognised')
+		else: print(f'Error: Field type {field_type}, field name {field_name} not recognised')
 		
 		return key, library
 
@@ -239,8 +246,6 @@ class Zettelkasten(Zettel):
 		'''Store chunk of text in dictionary with section heading as title and section as zettel'''
 		key = self.gsheets_timestamp()
 		if key in library.keys(): print('Error: Duplicate key while storing subsection')
-		# library[key] = dict(parent = parent, title = field_name,
-			# zettel = field_contents, reference = '', keyword = '')
 		elif (field_name or field_contents): # ignore empty sections
 			library[key] = Zettel()
 			library[key].store_index_zettel(library, self.gsheets_timestamp(self.master_key),
@@ -326,4 +331,4 @@ if __name__ == '__main__':
 	print(len(zkn.library))
 
 	# 
-	# zkn.export_zk_txt(path_root, zkn.library)
+	zkn.export_zk_txt(path_root, zkn.library)
