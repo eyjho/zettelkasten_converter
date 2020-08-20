@@ -84,9 +84,16 @@ class Zettel:
 		if 'title' in field_name:
 			self.title = self.clean_text(field_contents, True)
 
+		# recognise section zettel based on contents		
+		elif ('zettel' in field_name and 
+			('index card' in field_contents.lower() 
+				or 'section header' in field_contents.lower())):
+			self.zettel = self.clean_text(field_contents, True)
+			self.type = 'section'
+
 		elif 'zettel' in field_name and ':' not in field_contents:
 			self.zettel = self.clean_text(field_contents, True)
-		
+
 		# split contents into title and zettel if colon present and title empty
 		elif 'zettel' in field_name and ':' in field_contents and not self.title:
 			split_contents = re.split('[:]', field_contents)
@@ -173,7 +180,7 @@ class Zettelkasten(Zettel):
 	def find_sections_in_txt(self, contents, library = {}, field_type = ''):
 		'''Extract subsections as search results from text using regex'''
 		if 'section' in field_type:
-			pattern = r'\n{1}[\w ,]{2,100}\n{1}'
+			pattern = r'\n{1}[\w ,]{2,100}\n{2}'
 			# whitespace necessary in [\w ] to allow spaces in header
 		elif 'zettel' in field_type:
 			pattern = r'\[\w{1,10}\]'
