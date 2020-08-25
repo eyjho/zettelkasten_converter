@@ -132,7 +132,7 @@ class Zettelkasten(Zettel):
 	def gsheets_timestamp(self, timestamp = None):
 		'''Generate timestamp in Googlesheets format UTC (counts days from 30/12/1899)'''
 		if timestamp == None: timestamp = self.timestamp
-		self.timestamp += 0.00001
+		self.timestamp += 0.00002
 		return '{:.6f}'.format(timestamp)
 
 	def import_csv_odict_gen(self, file_path = ''):
