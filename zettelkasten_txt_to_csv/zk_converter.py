@@ -161,6 +161,7 @@ class Zettelkasten(Zettel):
 				'zettel', split_lib, key)
 			# ignore empty dictionary outputs
 			if split_lib: library.update(split_lib)
+			else: print("In dict_to_zk, empty zettel")
 		return library
 
 	def import_txt_to_str(self, file_path = ''):
@@ -227,6 +228,7 @@ class Zettelkasten(Zettel):
 			key, split_lib = self.store_tuple_to_lib(fields_tuple, field_type, split_lib, key, parent)
 			# ignore empty dictionary outputs
 			if split_lib: yield key, split_lib[key]
+			else: print("In split_generator, empty library")
 
 	def store_tuple_to_lib(self, fields_tuple, field_type, library = None, key = 0, parent = 0):
 		'''Store zettelkasten contents or sections into fields in library'''
@@ -338,7 +340,7 @@ if __name__ == '__main__':
 	else: print(f'Extension not recognised: {extension}')
 	# zkn.library = zkn.run_csv(file_path)
 	zkn.display(10)
-	print(len(zkn.library))
-
-	# 
+	print(len(zkn.library), len(set(zkn.library.keys())))
+	zkn.library = zkn.clear_empty_zettel(zkn.library)
+	print(len(zkn.library), len(set(zkn.library.keys())))
 	# zkn.export_zk_txt(path_root, zkn.library)
