@@ -60,6 +60,8 @@ class Context():
 			zkn.library = zkn.run_txt(file_path)
 		else: print(f'Extension not recognised: {extension}')
 
+		zkn.library = zkn.clear_empty_zettel(zkn.library)
+
 		print("Context: Sorting data using the strategy (not sure how it'll do it)")
 		result = self._strategy.do_algorithm(path_root)
 		print(f"New zettels: {len(zkn.library)}")
@@ -102,6 +104,7 @@ if __name__ == "__main__":
 	zkn = Zettelkasten(diagnostics = False)
 	controller = Controller()
 	file_path = controller.tkgui_getfile()
+	print(f"Input file: {file_path}")
 	context = Context(export_csv())
 
 	# context.strategy = export_csv()

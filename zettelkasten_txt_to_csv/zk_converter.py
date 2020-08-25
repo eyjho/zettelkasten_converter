@@ -277,8 +277,6 @@ class Zettelkasten(Zettel):
 			zettel_generator = self.split_generator(contents, field_type, parent)
 			for key, zettel in zettel_generator: library.update({key:zettel})
 		
-		# clear empty zettels
-		library = {k: v for k, v in library.items() if v.zettel}
 		return library
 
 	def run_csv(self, file_path):
@@ -288,8 +286,11 @@ class Zettelkasten(Zettel):
 		for csv_odict in csv_odict_gen:
 			library.update(self.dict_to_zk(csv_odict))
 		
-		# clear empty zettels
-		library = {k: v for k, v in library.items() if v.zettel}
+		return library
+
+	def clear_empty_zettel(self, library):
+		'''Clear empty zettels'''
+		library = {k: v for k, v in library.items() if (v.title or v.zettel)}
 		return library
 
 	def export_zk_txt(self, file_path, library = None):
