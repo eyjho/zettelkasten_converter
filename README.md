@@ -12,7 +12,9 @@ Explain zettelkasten with screenshots in text and csv
 
 ## Installation
 
-<pip install zettelkasten_converter>
+```sh
+pip install zettelkasten_converter
+```
 
 ## Usage example
 
