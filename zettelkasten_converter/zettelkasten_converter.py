@@ -173,7 +173,6 @@ class Zettelkasten(Zettel):
 
 		with open(file_path, 'r', encoding = 'utf-8') as my_file:
 			contents = my_file.read()
-			if self.diagnostics: print("During import \n", contents)
 			my_file.close()
 
 		return contents
@@ -199,7 +198,6 @@ class Zettelkasten(Zettel):
 		fields_out_list = []
 
 		for result in search_results:
-			if self.diagnostics: print(f"Key: {key}, search result: {result}")
 
 			# for sections, capture set of text before first subtitle
 			if not end_index:
@@ -245,7 +243,7 @@ class Zettelkasten(Zettel):
 			key = self.gsheets_timestamp() if len(field_contents) < 10 else field_contents
 			if key in library.keys(): print('Error: Duplicate key when assigning index')
 			else: library[key] = Zettel(); library[key].parent = parent
-			if self.diagnostics: print("Index assigned: ", key, library[key])
+
 		elif 'zettel' in field_type and key:
 			library[key].store_zettel_field(library, key, parent, field_name, field_contents)
 		else: print(f'Error: Field type {field_type}, Field name: {field_name} not recognised', '\n',
@@ -269,12 +267,16 @@ class Zettelkasten(Zettel):
 		incl section headers to zettels'''
 		library = dict()
 		contents = self.import_txt_to_str(file_path = file_path)
+		if self.diagnostics: print("During import \n", contents[:500])
+
 		parent, field_type = self.gsheets_timestamp(), 'section'
 		section_zettel_generator = self.split_generator(contents, field_type, parent)
 		for parent, section_zettel in section_zettel_generator:
-			contents,field_type = section_zettel.zettel, 'zettel'
+			contents, field_type = section_zettel.zettel, 'zettel'
 			section_zettel.zettel = "Index card"
 			library.update({parent: section_zettel})
+
+			if self.diagnostics: print("Section generator \n", contents[:100])
 			
 			zettel_generator = self.split_generator(contents, field_type, parent)
 			for key, zettel in zettel_generator: library.update({key:zettel})
@@ -286,7 +288,10 @@ class Zettelkasten(Zettel):
 		library = dict()
 		csv_odict_gen = self.import_csv_odict_gen(file_path = file_path)
 		for csv_odict in csv_odict_gen:
-			library.update(self.dict_to_zk(csv_odict))
+			row_lib = self.dict_to_zk(csv_odict)
+			library.update(row_lib)
+			if self.diagnostics:
+				print("During import \n", row_lib)
 		
 		return library
 
@@ -321,7 +326,7 @@ class Zettelkasten(Zettel):
 		return out_file_path
 
 if __name__ == '__main__':
-	zkn = Zettelkasten(diagnostics = False)
+	zkn = Zettelkasten(diagnostics = True)
 	controller = Controller()
 	file_path = controller.tkgui_getfile()
 	# print(file_path)
