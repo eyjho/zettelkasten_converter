@@ -1,11 +1,12 @@
-# Product Name
+# Zettelkasten converter
 
-Summary
+This is program to convert zettelkasten between txt and csv formats.
 
 [![NPM Version][npm-image]][npm-url]
 [![Downloads Stats][npm-downloads]][npm-url]
 
 Program description
+Explain zettelkasten with images in text and csv
 
 Program usage
 
