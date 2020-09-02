@@ -1,25 +1,18 @@
-# Product Name
+# Zettelkasten converter
 
-Summary
+This is program to convert zettelkasten between txt and csv formats.
 
 [![NPM Version][npm-image]][npm-url]
 [![Downloads Stats][npm-downloads]][npm-url]
 
 Program description
-
-Program usage
+Explain zettelkasten with screenshots in text and csv
 
 ![](interface.png)
 
 ## Installation
 
-Windows:
-
-Download Semiotics.Engine.v[x.y.z].zip from https://github.com/eyjho/google_images_download_exe/releases. Extract into your working directory, and run using the shortcut. No installation required. All images will be downloaded into the \Pictures directory by default, which will be in the same directory as the shortcut, or the directory above the .exe file. Note that the shortcut in the package is a relative link, and therefore will not work if moved. For a moveable shortcut, find Semiotics Engine\Semiotics Engine.exe, and create a shortcut.
-
-![](directory.png)
-
-OS X & Linux: TBC
+<pip install zettelkasten_converter>
 
 ## Usage example
 
