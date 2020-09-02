@@ -4,7 +4,7 @@
 '''
 Docstring
 '''
-from zettelkasten_txt_to_csv import Zettelkasten
+from zettelkasten_converter import Zettelkasten
 
 if __name__ == '__main__':
 	zkn = Zettelkasten(diagnostics = False)
