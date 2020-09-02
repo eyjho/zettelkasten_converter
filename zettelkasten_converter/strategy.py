@@ -14,7 +14,7 @@ possible because in Python functions are first class objects.
 
 from __future__ import annotations
 from typing import List, Dict
-from zk_converter import Zettelkasten, Controller
+from zettelkasten_converter import Zettelkasten, Controller
 
 class Context():
 	"""
