@@ -1,14 +1,21 @@
 # Zettelkasten converter
 
-This is program to convert zettelkasten between txt and csv formats.
+This simple program converts zettelkasten between txt and csv formats.
 
 [![NPM Version][npm-image]][npm-url]
 [![Downloads Stats][npm-downloads]][npm-url]
 
-Program description
-Explain zettelkasten with screenshots in text and csv
+# Program description
 
-![](interface.png)
+I started my zettelkasten as notes in a text file, but then realised that a spreadsheet was a more suitable platform for searching and viewing groups of notes. 
+
+![](zk_csv.png)
+![](zk_txt.png)
+
+# What is a zettelkasten?
+
+A zettelkasten is a system of notes pioneered by Niklass Luhman, a prolific academic of his time. Luhman used his zettelkasten as an external long term memory, in which he refined and stored ideas from his thinking and reading for later use. This allowed for an extremely product workflow in which certain topics would blossom in the zettelkasten, and Luhman could simply collate related notes together to form the first draft of an article or book.
+
 
 ## Installation
 
