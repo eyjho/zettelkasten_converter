@@ -10,9 +10,11 @@ This simple program converts zettelkasten between txt and csv formats.
 I started my zettelkasten as notes in a text file, but then realised that a spreadsheet was a more suitable platform for searching and viewing groups of notes. Having already created several hundred notes, I created this program to export the existing notes into a spreadsheet.
 
 Convert between this:
+
 <img src="zk_csv.png" width="500">
 
 And this. Works both ways.
+
 <img src="zk_txt.png" width="500">
 
 # What is a zettelkasten?
