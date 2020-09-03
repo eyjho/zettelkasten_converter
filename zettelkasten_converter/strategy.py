@@ -62,7 +62,7 @@ class Context():
 
 		zkn.library = zkn.clear_empty_zettel(zkn.library)
 
-		print("Context: Sorting data using the strategy (not sure how it'll do it)")
+		print("Context: Sorting data using the strategy")
 		result = self._strategy.do_algorithm(path_root)
 		print(f"New zettels: {len(zkn.library)}")
 		print(f"Output file: {result}")
@@ -107,10 +107,10 @@ if __name__ == "__main__":
 	print(f"Input file: {file_path}")
 	context = Context(export_csv())
 
-	# context.strategy = export_csv()
-	# print("Client: Strategy is set to export csv.")
-	# context.identify_import_file(file_path)
-	# print()
+	context.strategy = export_csv()
+	print("Client: Strategy is set to export csv.")
+	context.identify_import_file(file_path)
+	print()
 
 	print("Client: Strategy is set to export txt.")
 	context.strategy = export_txt()
