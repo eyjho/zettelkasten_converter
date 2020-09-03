@@ -25,9 +25,11 @@ A zettelkasten is a system of notes pioneered by Niklas Luhmann, a prolific acad
 
 1. Fork and clone project from https://github.com/eyjho/zettelkasten_converter/
 2. Navigate to the zettelkasten_converter main directory.
-2. Run zettelkasten_converter\strategy.py.
+3. Run zettelkasten_converter\strategy.py.
 ```sh
-...\zettelkasten_converter>python zettelkasten_converter\strategy.py
+git clone https://github.com/eyjho/zettelkasten_converter.git <directory>
+cd <directory>
+<directory>\zettelkasten_converter>python zettelkasten_converter\strategy.py
 ```
 
 ## Usage example
