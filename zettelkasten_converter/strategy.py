@@ -61,11 +61,12 @@ class Context():
 		else: print(f'Extension not recognised: {extension}')
 
 		zkn.library = zkn.clear_empty_zettel(zkn.library)
-
-		print("Context: Sorting data using the strategy")
-		result = self._strategy.do_algorithm(path_root)
-		print(f"New zettels: {len(zkn.library)}")
-		print(f"Output file: {result}")
+		if zkn.library:
+			print("Context: Sorting data using the strategy")
+			result = self._strategy.do_algorithm(path_root)
+			print(f"New zettels: {len(zkn.library)}")
+			print(f"Output file: {result}")
+		else: print("Error: no zettels found")
 
 		# ...
 
