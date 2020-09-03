@@ -52,10 +52,10 @@ Eugene (https://github.com/eyjho)
 
 Distributed under the MIT license. See ``LICENSE`` for more information.
 
-https://github.com/eyjho/google_images_download_exe
+https://github.com/eyjho/zettelkasten_converter/
 
 <!-- Markdown link & img dfn's -->
 [npm-image]: https://img.shields.io/npm/v/datadog-metrics.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/datadog-metrics
 [npm-downloads]: https://img.shields.io/npm/dm/datadog-metrics.svg?style=flat-square
-[wiki]: https://github.com/yourname/yourproject/wiki
+[wiki]: https://github.com/eyjho/zettelkasten_converter/wiki
