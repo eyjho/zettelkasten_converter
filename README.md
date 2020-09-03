@@ -23,35 +23,42 @@ A zettelkasten is a system of notes pioneered by Niklas Luhmann, a prolific acad
 
 ## Installation
 
-1. Clone project from https://github.com/eyjho/zettelkasten_converter/
-2. Navigate to the zettelkasten_converter main directory.
-3. Run zettelkasten_converter\strategy.py.
+Clone project from https://github.com/eyjho/zettelkasten_converter/
+
+Command line interface:
 ```sh
 git clone https://github.com/eyjho/zettelkasten_converter.git <directory>
-cd <directory>
-<directory>\zettelkasten_converter>python zettelkasten_converter\strategy.py
 ```
 
 ## Usage example
-
-![](gui_search.png)
-
-
+1. Place input file into <example> directory
+2. Run zettelkasten_converter from installation <directory>
 ```
+cd <directory>
 <directory>\zettelkasten_converter>python zettelkasten_converter\strategy.py
-Input file: <directory>/zettelkasten_converter/example/Zettelkasten v0_4.csv
+```
+3. Prompt will appear to select file. Navigate to input file and select.
+<img src="select_file.png" width="500">
+
+4. Run zettelkasten_converter\strategy.py. This will automatically detect .txt and .csv files, and output both file types with a timestamp (Google Sheets numerical format) appended to the output file name.
+```
+Input file: <directory>/zettelkasten_converter/<example>/Zettelkasten v0_4.csv
+
 Client: Strategy is set to export csv.
 Context: Sorting data using the strategy
 Exporting csv
 New zettels: 307
-Output file: <directory>/zettelkasten_converter/example/Zettelkasten v0_4_44077.229858.csv
+Output file: <directory>/zettelkasten_converter/<example>/Zettelkasten v0_4_44077.229858.csv
 
 Client: Strategy is set to export txt.
 Context: Sorting data using the strategy
 Exporting txt
 New zettels: 307
-Output file: <directory>/zettelkasten_converter/example/Zettelkasten v0_4_44077.229858.txt
+Output file: <directory>/zettelkasten_converter/<example>/Zettelkasten v0_4_44077.229858.txt
 ```
+
+To export only one file type, simply comment out the corresponding section of code in stratey.py.
+<img src="strategy.png" width="500">
 
 _For more examples and usage, please refer to the [Wiki][wiki]._
 
