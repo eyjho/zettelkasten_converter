@@ -23,7 +23,7 @@ A zettelkasten is a system of notes pioneered by Niklas Luhmann, a prolific acad
 
 ## Installation
 
-1. Fork and clone project from https://github.com/eyjho/zettelkasten_converter/
+1. Clone project from https://github.com/eyjho/zettelkasten_converter/
 2. Navigate to the zettelkasten_converter main directory.
 3. Run zettelkasten_converter\strategy.py.
 ```sh
@@ -35,6 +35,23 @@ cd <directory>
 ## Usage example
 
 ![](gui_search.png)
+
+
+```
+<directory>\zettelkasten_converter>python zettelkasten_converter\strategy.py
+Input file: <directory>/zettelkasten_converter/example/Zettelkasten v0_4.csv
+Client: Strategy is set to export csv.
+Context: Sorting data using the strategy
+Exporting csv
+New zettels: 307
+Output file: <directory>/zettelkasten_converter/example/Zettelkasten v0_4_44077.229858.csv
+
+Client: Strategy is set to export txt.
+Context: Sorting data using the strategy
+Exporting txt
+New zettels: 307
+Output file: <directory>/zettelkasten_converter/example/Zettelkasten v0_4_44077.229858.txt
+```
 
 _For more examples and usage, please refer to the [Wiki][wiki]._
 
